@@ -218,15 +218,11 @@ function Layout() {
   }, [pageGridStyle])
 
   useEffect(() => {
-    const revealItems = Array.from(
-      document.querySelectorAll<HTMLElement>('.reveal-on-scroll'),
-    )
-    if (revealItems.length === 0) return
+    const revealRoot = document.querySelector('main')
+    if (!revealRoot) return
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      revealItems.forEach((item) => item.classList.add('is-visible'))
-      return
-    }
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const observedItems = new Set<HTMLElement>()
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -244,12 +240,46 @@ function Layout() {
       },
     )
 
-    revealItems.forEach((item) => {
-      item.classList.remove('is-visible')
-      observer.observe(item)
+    const syncRevealItems = () => {
+      const revealItems = Array.from(
+        revealRoot.querySelectorAll<HTMLElement>('.reveal-on-scroll'),
+      )
+
+      revealItems.forEach((item) => {
+        if (prefersReducedMotion.matches) {
+          item.classList.add('is-visible')
+          return
+        }
+
+        if (observedItems.has(item)) return
+
+        item.classList.remove('is-visible')
+        observer.observe(item)
+        observedItems.add(item)
+      })
+
+      observedItems.forEach((item) => {
+        if (item.isConnected) return
+        observer.unobserve(item)
+        observedItems.delete(item)
+      })
+    }
+
+    syncRevealItems()
+
+    const mutationObserver = new MutationObserver(() => {
+      syncRevealItems()
     })
 
-    return () => observer.disconnect()
+    mutationObserver.observe(revealRoot, {
+      childList: true,
+      subtree: true,
+    })
+
+    return () => {
+      mutationObserver.disconnect()
+      observer.disconnect()
+    }
   }, [location.pathname])
 
   return (
@@ -303,7 +333,7 @@ function Layout() {
               <ul className="mt-3 space-y-2 text-sm text-slate-600">
                 {navItems.map((item) => (
                   <li key={item.label}>
-                    <NavLink to={item.to} className="hover:text-slate-900">
+                    <NavLink to={item.to} className="footer-quick-link inline-flex hover:text-slate-900">
                       {item.label}
                     </NavLink>
                   </li>
@@ -418,10 +448,21 @@ function AboutPage() {
                   type="button"
                   aria-expanded={isOpen}
                   onClick={() => setOpenSkillIndex(isOpen ? null : index)}
-                  className="skill-toggle-button w-full text-left"
+                  className="skill-toggle-button flex w-full items-center justify-between gap-4 text-left"
                 >
-                  <span className="block text-base font-semibold text-slate-900">{section.title}</span>
-                  <span className="mt-0.5 block text-xs text-slate-500">{isOpen ? 'Tap to collapse' : 'Tap to expand'}</span>
+                  <span className="min-w-0">
+                    <span className="block text-base font-semibold text-slate-900">{section.title}</span>
+                    <span className="mt-0.5 block text-xs text-slate-500">
+                      {isOpen ? 'Tap to collapse' : 'Tap to expand'}
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden
+                    className={`skill-toggle-icon ${isOpen ? 'skill-toggle-icon-open' : ''}`}
+                  >
+                    <span className="skill-toggle-icon-line" />
+                    <span className="skill-toggle-icon-line skill-toggle-icon-line-vertical" />
+                  </span>
                 </button>
                 <div className={`skill-accordion-content ${isOpen ? 'skill-accordion-open' : ''}`}>
                   <div className="skill-accordion-inner">

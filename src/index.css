@@ -101,6 +101,14 @@ body::-webkit-scrollbar {
   padding-left: 0.35rem;
 }
 
+.footer-quick-link {
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.footer-quick-link:hover {
+  transform: translateX(6px);
+}
+
 .project-row {
   transition: padding-left 180ms ease, border-color 180ms ease, color 180ms ease,
     background-color 180ms ease;
@@ -143,6 +151,42 @@ body::-webkit-scrollbar {
 
 .skill-toggle-button:hover {
   color: #0f172a;
+}
+
+.skill-toggle-icon {
+  position: relative;
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: transparent;
+  transition:
+    transform 240ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.skill-toggle-button:hover .skill-toggle-icon {
+  background: rgba(241, 245, 249, 0.55);
+}
+
+.skill-toggle-icon-open {
+  transform: rotate(45deg);
+}
+
+.skill-toggle-icon-line {
+  position: absolute;
+  height: 1.5px;
+  width: 0.8rem;
+  border-radius: 9999px;
+  background: #0f172a;
+}
+
+.skill-toggle-icon-line-vertical {
+  transform: rotate(90deg);
 }
 
 .skill-accordion-content {
