@@ -5,6 +5,54 @@ const navItems = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Projects', to: '/projects' },
+  { label: 'Blog', to: '/blog' },
+]
+
+const blogCategories = ['DevOps', 'Linux', 'Docker', 'Database', 'Monitoring', 'Automation']
+
+const blogPosts = [
+  {
+    title: 'Docker ကို Ubuntu 24.04 (Noble) မှာ Install လုပ်နည်း (Official Repo)',
+    date: 'Draft',
+    category: 'Docker',
+    image: '/blog-docker-ubuntu.svg',
+    excerpt: 'Official repository method နဲ့ clean installation workflow ကို အဆင့်လိုက် ထည့်သွင်းဖော်ပြပါမယ်။',
+  },
+  {
+    title: 'Openresty Webserver',
+    date: 'Draft',
+    category: 'Web Server',
+    image: '/blog-openresty.svg',
+    excerpt: 'OpenResty deployment, reverse proxy setup, and Lua-based extension patterns ကိုရေးသားပါမယ်။',
+  },
+  {
+    title: 'Node JS Installation',
+    date: 'Draft',
+    category: 'Runtime',
+    image: '/blog-nodejs.svg',
+    excerpt: 'Linux server တွေမှာ stable Node.js environment setup နည်းလမ်းများကို တိတိကျကျ ရေးပါမယ်။',
+  },
+  {
+    title: 'Redis Installation',
+    date: 'Draft',
+    category: 'Caching',
+    image: '/blog-redis.svg',
+    excerpt: 'Redis install, service tuning, and secure baseline configuration ကို guide ပုံစံနဲ့ ထည့်မယ်။',
+  },
+  {
+    title: 'PostgreSQL 17 Installation (Linux အတွက် - Ubuntu 24.04)',
+    date: 'Draft',
+    category: 'Database',
+    image: '/blog-postgresql.svg',
+    excerpt: 'PostgreSQL 17 install, initialization, and performance-friendly base settings တွေကို ဆွေးနွေးပါမယ်။',
+  },
+  {
+    title: 'Zabbix Monitoring Server Installation',
+    date: 'Draft',
+    category: 'Monitoring',
+    image: '/blog-zabbix.svg',
+    excerpt: 'Zabbix server setup, templates, triggers, and alert routing flow ကို အသေးစိတ်ဖော်ပြပါမယ်။',
+  },
 ]
 
 const skillSections = [
@@ -163,13 +211,13 @@ function Layout() {
       <div className="mx-auto max-w-6xl px-5 pb-16 pt-6 sm:px-8 lg:px-10">
         <header className="sticky top-3 z-30 mb-12">
           <nav className="flex justify-center">
-            <div className="ios-glass-nav relative inline-grid grid-cols-3 items-center rounded-full p-1.5">
+            <div className="ios-glass-nav relative inline-grid grid-cols-4 items-center rounded-full p-1.5">
               <span
                 aria-hidden
                 className="ios-glass-indicator absolute bottom-1.5 top-1.5 rounded-full transition-all duration-300 ease-out"
                 style={{
-                  width: 'calc((100% - 0.75rem) / 3)',
-                  left: `calc(0.375rem + ${activeNavIndex} * ((100% - 0.75rem) / 3))`,
+                  width: 'calc((100% - 0.75rem) / 4)',
+                  left: `calc(0.375rem + ${activeNavIndex} * ((100% - 0.75rem) / 4))`,
                 }}
               />
               {navItems.map((item) => (
@@ -393,6 +441,48 @@ function ProjectsPage() {
   )
 }
 
+function BlogPage() {
+  return (
+    <section className="page-content mx-auto max-w-6xl">
+      <h3 className="text-4xl font-semibold tracking-tight text-slate-900">Blog</h3>
+      <p className="mt-3 max-w-3xl text-slate-600">
+        Insights, tips, and practical guides focused on DevOps, cloud infrastructure, and automation workflows.
+      </p>
+
+      <div className="mt-8">
+        <h4 className="text-lg font-semibold text-slate-900">Categories</h4>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {blogCategories.map((category) => (
+            <span
+              key={category}
+              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600"
+            >
+              {category}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-8 space-y-4">
+        {blogPosts.map((post) => (
+          <article key={post.title} className="smooth-line-item border-b border-slate-200 pb-4">
+            <img
+              src={post.image}
+              alt={post.title}
+              className="mb-3 h-40 w-full rounded-xl object-cover ring-1 ring-slate-200/70 sm:h-48"
+            />
+            <p className="text-xs font-medium text-slate-500">
+              {post.date} · by Phyo Maung Maung · {post.category}
+            </p>
+            <h4 className="mt-1 text-xl font-semibold text-slate-900">{post.title}</h4>
+            <p className="mt-2 max-w-4xl text-sm leading-relaxed text-slate-600">{post.excerpt}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function App() {
   return (
     <Routes>
@@ -400,6 +490,7 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="projects" element={<ProjectsPage />} />
+        <Route path="blog" element={<BlogPage />} />
       </Route>
     </Routes>
   )
