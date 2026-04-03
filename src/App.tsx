@@ -451,8 +451,14 @@ function AboutPage() {
                   className="skill-toggle-button flex w-full items-center justify-between gap-4 text-left"
                 >
                   <span className="min-w-0">
-                    <span className="block text-base font-semibold text-slate-900">{section.title}</span>
-                    <span className="mt-0.5 block text-xs text-slate-500">
+                    <span
+                      className={`block text-base font-semibold transition-colors ${
+                        isOpen ? 'text-sky-700' : 'text-slate-900'
+                      }`}
+                    >
+                      {section.title}
+                    </span>
+                    <span className={`mt-0.5 block text-xs transition-colors ${isOpen ? 'text-sky-600' : 'text-slate-500'}`}>
                       {isOpen ? 'Tap to collapse' : 'Tap to expand'}
                     </span>
                   </span>
@@ -483,51 +489,75 @@ function AboutPage() {
 }
 
 function ProjectsPage() {
-  const [selectedProject, setSelectedProject] = useState(projectOverviewSections[0])
+  const [openProjectIndex, setOpenProjectIndex] = useState<number | null>(0)
 
   return (
-    <section className="page-content mx-auto max-w-6xl">
+    <section className="page-content mx-auto max-w-5xl">
       <h3 className="reveal-on-scroll reveal-delay-1 text-2xl font-semibold text-slate-900">Projects Overview</h3>
-      <p className="reveal-on-scroll reveal-delay-2 mt-2 text-sm text-slate-600">Select a project card to view details.</p>
+      <p className="reveal-on-scroll reveal-delay-2 mt-2 text-sm text-slate-600">
+        Tap a project to expand the details.
+      </p>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.05fr_1.35fr]">
-        <div className="reveal-on-scroll reveal-delay-3 space-y-1">
-          {projectOverviewSections.map((project) => {
-            const isActive = selectedProject.title === project.title
-            return (
+      <div className="mt-6 space-y-4">
+        {projectOverviewSections.map((project, index) => {
+          const isOpen = openProjectIndex === index
+
+          return (
+            <article
+              key={project.title}
+              className={`reveal-on-scroll reveal-delay-${(index % 4) + 1} border-b border-slate-200 pb-4`}
+            >
               <button
                 key={project.title}
                 type="button"
-                onClick={() => setSelectedProject(project)}
-                className={`project-row w-full border-b p-3 text-left transition ${
-                  isActive
-                    ? 'border-slate-400 bg-slate-100/70 text-slate-900'
-                    : 'border-slate-200 text-slate-700 hover:border-slate-300'
-                }`}
+                aria-expanded={isOpen}
+                onClick={() => setOpenProjectIndex(isOpen ? null : index)}
+                className="skill-toggle-button flex w-full items-center justify-between gap-4 py-1 text-left"
               >
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Project
-                </p>
-                <h4 className="mt-2 text-base font-semibold leading-snug">{project.title}</h4>
+                <span className="min-w-0">
+                  <span
+                    className={`block text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      isOpen ? 'text-sky-600' : 'text-slate-500'
+                    }`}
+                  >
+                    Project
+                  </span>
+                  <span
+                    className={`mt-2 block text-base font-semibold leading-snug transition-colors ${
+                      isOpen ? 'text-sky-700' : 'text-slate-900'
+                    }`}
+                  >
+                    {project.title}
+                  </span>
+                  <span className={`mt-1 block text-sm transition-colors ${isOpen ? 'text-sky-600' : 'text-slate-500'}`}>
+                    {isOpen ? 'Tap to collapse' : 'Tap to expand'}
+                  </span>
+                </span>
+                <span
+                  aria-hidden
+                  className={`skill-toggle-icon ${isOpen ? 'skill-toggle-icon-open' : ''}`}
+                >
+                  <span className="skill-toggle-icon-line" />
+                  <span className="skill-toggle-icon-line skill-toggle-icon-line-vertical" />
+                </span>
               </button>
-            )
-          })}
-        </div>
-
-        <article
-          key={selectedProject.title}
-          className="reveal-on-scroll reveal-delay-4 project-detail-transition rounded-2xl border border-slate-200 bg-slate-50 p-6"
-        >
-          <h4 className="text-xl font-semibold text-slate-900">{selectedProject.title}</h4>
-          <p className="mt-3 text-sm text-slate-700">
-            <span className="font-semibold">Tech:</span> {selectedProject.tech}
-          </p>
-          <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-600">
-            {selectedProject.features.map((feature) => (
-              <li key={feature}>{feature}</li>
-            ))}
-          </ul>
-        </article>
+              <div className={`skill-accordion-content ${isOpen ? 'skill-accordion-open' : ''}`}>
+                <div className="skill-accordion-inner">
+                  <div className="project-detail-transition mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+                    <p className="text-sm text-slate-700">
+                      <span className="font-semibold">Tech:</span> {project.tech}
+                    </p>
+                    <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-600">
+                      {project.features.map((feature) => (
+                        <li key={feature}>{feature}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </article>
+          )
+        })}
       </div>
     </section>
   )
