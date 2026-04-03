@@ -1,0 +1,294 @@
+@import "tailwindcss";
+
+:root {
+  font-family:
+    "SF Pro Text",
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Helvetica Neue",
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(1200px 420px at 10% -10%, rgba(191, 219, 254, 0.52), rgba(248, 250, 252, 0) 55%),
+    radial-gradient(900px 360px at 90% -20%, rgba(216, 180, 254, 0.35), rgba(248, 250, 252, 0) 58%),
+    #f8fafc;
+}
+
+.ios-glass-nav {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.54) 0%,
+    rgba(255, 255, 255, 0.26) 52%,
+    rgba(255, 255, 255, 0.14) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.16),
+    0 12px 30px rgba(15, 23, 42, 0.14),
+    0 2px 8px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(22px) saturate(200%);
+  -webkit-backdrop-filter: blur(22px) saturate(200%);
+}
+
+.ios-glass-nav::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.07) 42%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
+}
+
+.ios-glass-indicator {
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.62) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 5px 14px rgba(15, 23, 42, 0.14);
+}
+
+.page-content {
+  animation: contentFadeIn 360ms ease-out;
+}
+
+.smooth-cta {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.smooth-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}
+
+.smooth-line-item {
+  transition: padding-left 180ms ease, color 180ms ease;
+}
+
+.smooth-line-item:hover {
+  padding-left: 0.35rem;
+}
+
+.project-row {
+  transition: padding-left 180ms ease, border-color 180ms ease, color 180ms ease,
+    background-color 180ms ease;
+}
+
+.project-row:hover {
+  padding-left: 1.1rem;
+}
+
+.skill-toggle-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.skill-toggle-summary::-webkit-details-marker {
+  display: none;
+}
+
+.skill-toggle-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 320ms ease, opacity 260ms ease;
+}
+
+.skill-toggle-inner {
+  overflow: hidden;
+}
+
+.skill-toggle[open] .skill-toggle-content {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.skill-toggle-button {
+  transition: color 160ms ease;
+}
+
+.skill-toggle-button:hover {
+  color: #0f172a;
+}
+
+.skill-accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 260ms ease, opacity 220ms ease;
+}
+
+.skill-accordion-inner {
+  overflow: hidden;
+}
+
+.skill-accordion-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.page-transition-right {
+  animation: pageSlideFromRight 360ms ease-out;
+}
+
+.page-transition-left {
+  animation: pageSlideFromLeft 360ms ease-out;
+}
+
+.project-detail-transition {
+  animation: projectDetailFade 260ms ease-out;
+}
+
+.hero-rotator-transition {
+  animation: heroRotatorFade 260ms ease-out;
+}
+
+.home-project-card {
+  animation: projectCardIn 320ms ease-out both;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.home-project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.project-spotlight-transition {
+  animation: spotlightFromRight 260ms ease-out;
+}
+
+.skill-spotlight-transition {
+  animation: spotlightFromLeft 260ms ease-out;
+}
+
+@keyframes pageSlideFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pageSlideFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes projectDetailFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heroRotatorFade {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes projectCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spotlightFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes spotlightFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-right,
+  .page-transition-left,
+  .project-detail-transition,
+  .hero-rotator-transition,
+  .home-project-card,
+  .project-spotlight-transition,
+  .skill-spotlight-transition {
+    animation: none;
+  }
+
+  .home-project-card,
+  .smooth-cta,
+  .smooth-line-item,
+  .project-row {
+    transition: none;
+  }
+
+  .skill-toggle-content,
+  .skill-toggle-button,
+  .skill-accordion-content {
+    transition: none;
+  }
+}
