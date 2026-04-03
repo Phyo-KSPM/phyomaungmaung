@@ -14,10 +14,26 @@
 }
 
 body {
-  background:
-    radial-gradient(1200px 420px at 10% -10%, rgba(191, 219, 254, 0.52), rgba(248, 250, 252, 0) 55%),
-    radial-gradient(900px 360px at 90% -20%, rgba(216, 180, 254, 0.35), rgba(248, 250, 252, 0) 58%),
-    #f8fafc;
+  background: #ffffff;
+  background-repeat: no-repeat;
+  color: #0f172a;
+  min-height: 100vh;
+}
+
+body::before,
+body::after {
+  content: none;
+}
+
+html,
+body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 .ios-glass-nav {
@@ -146,11 +162,11 @@ body {
 }
 
 .page-transition-right {
-  animation: pageSlideFromRight 360ms ease-out;
+  animation: pageSlideFromRight 520ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .page-transition-left {
-  animation: pageSlideFromLeft 360ms ease-out;
+  animation: pageSlideFromLeft 520ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .project-detail-transition {
@@ -180,25 +196,74 @@ body {
   animation: spotlightFromLeft 260ms ease-out;
 }
 
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px) scale(0.9);
+  filter: blur(6px);
+  transition:
+    opacity 640ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 640ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 640ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+.reveal-on-scroll:not(.is-visible) {
+  transition-delay: 0ms;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+.reveal-delay-1 {
+  transition-delay: 50ms;
+}
+
+.reveal-delay-2 {
+  transition-delay: 110ms;
+}
+
+.reveal-delay-3 {
+  transition-delay: 170ms;
+}
+
+.reveal-delay-4 {
+  transition-delay: 230ms;
+}
+
+.reveal-delay-5 {
+  transition-delay: 290ms;
+}
+
+.reveal-delay-6 {
+  transition-delay: 350ms;
+}
+
 @keyframes pageSlideFromRight {
   from {
     opacity: 0;
-    transform: translateX(20px);
+    transform: translateX(42px) scale(0.985);
+    filter: blur(10px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
+    filter: blur(0);
   }
 }
 
 @keyframes pageSlideFromLeft {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(-42px) scale(0.985);
+    filter: blur(10px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
+    filter: blur(0);
   }
 }
 
@@ -282,8 +347,15 @@ body {
   .home-project-card,
   .smooth-cta,
   .smooth-line-item,
-  .project-row {
+  .project-row,
+  .reveal-on-scroll {
     transition: none;
+  }
+
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 
   .skill-toggle-content,

@@ -8,8 +8,6 @@ const navItems = [
   { label: 'Blog', to: '/blog' },
 ]
 
-const blogCategories = ['DevOps', 'Linux', 'Docker', 'Database', 'Monitoring', 'Automation']
-
 const blogPosts = [
   {
     title: 'Docker ကို Ubuntu 24.04 (Noble) မှာ Install လုပ်နည်း (Official Repo)',
@@ -206,8 +204,56 @@ function Layout() {
     previousNavIndex.current = activeNavIndex
   }, [activeNavIndex, location.pathname])
 
+  const pageGridStyle =
+    activeNavIndex === 0
+      ? 'grid-home'
+      : activeNavIndex === 1
+        ? 'grid-about'
+        : activeNavIndex === 2
+          ? 'grid-projects'
+          : 'grid-blog'
+
+  useEffect(() => {
+    document.body.setAttribute('data-grid-style', pageGridStyle)
+  }, [pageGridStyle])
+
+  useEffect(() => {
+    const revealItems = Array.from(
+      document.querySelectorAll<HTMLElement>('.reveal-on-scroll'),
+    )
+    if (revealItems.length === 0) return
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      revealItems.forEach((item) => item.classList.add('is-visible'))
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible')
+          } else {
+            entry.target.classList.remove('is-visible')
+          }
+        })
+      },
+      {
+        threshold: 0.18,
+        rootMargin: '0px 0px -6% 0px',
+      },
+    )
+
+    revealItems.forEach((item) => {
+      item.classList.remove('is-visible')
+      observer.observe(item)
+    })
+
+    return () => observer.disconnect()
+  }, [location.pathname])
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="min-h-screen bg-transparent text-slate-800">
       <div className="mx-auto max-w-6xl px-5 pb-16 pt-6 sm:px-8 lg:px-10">
         <header className="sticky top-3 z-30 mb-12">
           <nav className="flex justify-center">
@@ -306,26 +352,28 @@ function HomePage() {
       <img
         src="/kophyo_png.png"
         alt="Phyo Maung Maung profile"
-        className="mx-auto mb-6 h-28 w-28 rounded-full object-cover ring-4 ring-slate-100 sm:h-32 sm:w-32"
+        className="reveal-on-scroll reveal-delay-1 mx-auto mb-6 h-28 w-28 rounded-full object-cover ring-4 ring-slate-100 sm:h-32 sm:w-32"
       />
-      <p className="text-base font-medium text-slate-600">DevOps Engineer</p>
-      <h1 className="mt-3 text-5xl font-bold tracking-tight text-slate-900 sm:text-6xl">Phyo Maung Maung</h1>
-      <h2 className="mt-4 text-2xl font-semibold text-slate-700 sm:text-3xl">
+      <p className="reveal-on-scroll reveal-delay-2 text-base font-medium text-slate-600">DevOps Engineer</p>
+      <h1 className="reveal-on-scroll reveal-delay-3 mt-3 text-5xl font-bold tracking-tight text-slate-900 sm:text-6xl">
+        Phyo Maung Maung
+      </h1>
+      <h2 className="reveal-on-scroll reveal-delay-4 mt-4 text-2xl font-semibold text-slate-700 sm:text-3xl">
         Full-Stack Developer & DevOps/Automation Specialist
       </h2>
-      <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-slate-600">
+      <p className="reveal-on-scroll reveal-delay-5 mx-auto mt-6 max-w-3xl text-base leading-relaxed text-slate-600">
         I build and operate end-to-end digital systems-from modern web applications to production-grade
         infrastructure. My work covers CI/CD automation, Kubernetes and Docker deployments, cloud/on-prem
         operations, monitoring, and high-availability architecture to help teams deliver faster with reliability.
       </p>
 
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div className="reveal-on-scroll reveal-delay-6 mt-8 flex flex-wrap items-center justify-center gap-3">
         <NavLink to="/projects" className="smooth-cta rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-700">
           View Projects
         </NavLink>
       </div>
 
-      <div className="mt-8 grid gap-4 text-left md:grid-cols-2">
+      <div className="reveal-on-scroll reveal-delay-6 mt-8 grid gap-4 text-left md:grid-cols-2">
         <NavLink to="/projects" className="smooth-line-item border-b border-slate-200 pb-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Projects</p>
           <h4 className="mt-2 text-lg font-semibold text-slate-900">8 completed and experimental projects</h4>
@@ -346,7 +394,7 @@ function AboutPage() {
 
   return (
     <section className="page-content mx-auto max-w-5xl space-y-8">
-      <article>
+      <article className="reveal-on-scroll reveal-delay-1">
         <h3 className="text-2xl font-semibold text-slate-900">About Me</h3>
         <p className="mt-4 text-base leading-relaxed text-slate-600">
           I work on Docker, Kubernetes, Terraform, and AWS to build resilient infrastructure and smooth developer
@@ -355,14 +403,17 @@ function AboutPage() {
         </p>
       </article>
 
-      <article>
+      <article className="reveal-on-scroll reveal-delay-2">
         <h3 className="text-2xl font-semibold text-slate-900">Skills</h3>
         <div className="mt-5 space-y-4">
           {skillSections.map((section, index) => {
             const isOpen = openSkillIndex === index
 
             return (
-              <article key={section.title} className="border-b border-slate-200 pb-4">
+              <article
+                key={section.title}
+                className={`reveal-on-scroll reveal-delay-${(index % 4) + 1} border-b border-slate-200 pb-4`}
+              >
                 <button
                   type="button"
                   aria-expanded={isOpen}
@@ -395,11 +446,11 @@ function ProjectsPage() {
 
   return (
     <section className="page-content mx-auto max-w-6xl">
-      <h3 className="text-2xl font-semibold text-slate-900">Projects Overview</h3>
-      <p className="mt-2 text-sm text-slate-600">Select a project card to view details.</p>
+      <h3 className="reveal-on-scroll reveal-delay-1 text-2xl font-semibold text-slate-900">Projects Overview</h3>
+      <p className="reveal-on-scroll reveal-delay-2 mt-2 text-sm text-slate-600">Select a project card to view details.</p>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.05fr_1.35fr]">
-        <div className="space-y-1">
+        <div className="reveal-on-scroll reveal-delay-3 space-y-1">
           {projectOverviewSections.map((project) => {
             const isActive = selectedProject.title === project.title
             return (
@@ -424,7 +475,7 @@ function ProjectsPage() {
 
         <article
           key={selectedProject.title}
-          className="project-detail-transition rounded-2xl border border-slate-200 bg-slate-50 p-6"
+          className="reveal-on-scroll reveal-delay-4 project-detail-transition rounded-2xl border border-slate-200 bg-slate-50 p-6"
         >
           <h4 className="text-xl font-semibold text-slate-900">{selectedProject.title}</h4>
           <p className="mt-3 text-sm text-slate-700">
@@ -442,30 +493,46 @@ function ProjectsPage() {
 }
 
 function BlogPage() {
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const categories = ['All', ...Array.from(new Set(blogPosts.map((post) => post.category)))]
+  const filteredPosts =
+    selectedCategory === 'All'
+      ? blogPosts
+      : blogPosts.filter((post) => post.category === selectedCategory)
+
   return (
     <section className="page-content mx-auto max-w-6xl">
-      <h3 className="text-4xl font-semibold tracking-tight text-slate-900">Blog</h3>
-      <p className="mt-3 max-w-3xl text-slate-600">
+      <h3 className="reveal-on-scroll reveal-delay-1 text-4xl font-semibold tracking-tight text-slate-900">Blog</h3>
+      <p className="reveal-on-scroll reveal-delay-2 mt-3 max-w-3xl text-slate-600">
         Insights, tips, and practical guides focused on DevOps, cloud infrastructure, and automation workflows.
       </p>
 
-      <div className="mt-8">
+      <div className="reveal-on-scroll reveal-delay-3 mt-8">
         <h4 className="text-lg font-semibold text-slate-900">Categories</h4>
         <div className="mt-3 flex flex-wrap gap-2">
-          {blogCategories.map((category) => (
-            <span
+          {categories.map((category) => (
+            <button
               key={category}
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600"
+              type="button"
+              onClick={() => setSelectedCategory(category)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                selectedCategory === category
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
             >
               {category}
-            </span>
+            </button>
           ))}
         </div>
       </div>
 
       <div className="mt-8 space-y-4">
-        {blogPosts.map((post) => (
-          <article key={post.title} className="smooth-line-item border-b border-slate-200 pb-4">
+        {filteredPosts.map((post) => (
+          <article
+            key={post.title}
+            className="reveal-on-scroll reveal-delay-4 smooth-line-item border-b border-slate-200 pb-4"
+          >
             <img
               src={post.image}
               alt={post.title}
