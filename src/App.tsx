@@ -338,16 +338,16 @@ function Layout() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible')
-          } else {
-            entry.target.classList.remove('is-visible')
-          }
+          // Scale to 1 only when ~30% of the element intersects the viewport
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.3) return
+          const el = entry.target as HTMLElement
+          el.classList.add('is-visible')
+          observer.unobserve(el)
         })
       },
       {
-        threshold: 0.18,
-        rootMargin: '0px 0px -6% 0px',
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        rootMargin: '0px',
       },
     )
 
@@ -717,13 +717,13 @@ function BlogPage() {
           <Link
             key={post.title}
             to={`/blog/${post.slug}`}
-            className="reveal-on-scroll reveal-delay-4 block border-b border-slate-200 pb-4 transition hover:translate-x-1"
+            className="group reveal-on-scroll reveal-delay-4 block border-b border-slate-200 pb-4"
           >
-            <div className="relative mb-3">
+            <div className="relative mb-3 h-36 overflow-hidden rounded-xl ring-1 ring-slate-200/70 sm:h-44">
               <img
                 src={post.image}
                 alt={post.title}
-                className="h-40 w-full rounded-xl object-cover ring-1 ring-slate-200/70 sm:h-48"
+                className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
               />
             </div>
             <p className="text-xs font-medium text-slate-500">
