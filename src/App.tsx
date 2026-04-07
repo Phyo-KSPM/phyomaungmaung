@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { blogPosts, postHasFullContent } from './data/blogPosts'
+import type { BlogPost } from './data/blogPostTypes'
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -215,7 +216,7 @@ function BlogDetailPage() {
         <img
           src={post.image}
           alt={post.title}
-          className="reveal-on-scroll reveal-delay-2 h-52 w-full rounded-3xl object-cover ring-1 ring-slate-200/80 sm:h-72"
+          className="reveal-on-scroll reveal-delay-2 h-auto w-full rounded-3xl border border-slate-200/80 bg-slate-50 object-contain"
         />
         <p className="reveal-on-scroll reveal-delay-2 mt-6 text-sm font-medium text-slate-500">
           {post.date} · by {authorLine} · {post.category} · {post.readTime}
@@ -677,62 +678,139 @@ function ProjectsPage() {
   )
 }
 
+function buildPostSearchHaystack(post: BlogPost): string {
+  const parts: string[] = [
+    post.slug,
+    post.title,
+    post.date,
+    post.category,
+    post.image,
+    post.excerpt,
+    post.readTime,
+    post.author ?? '',
+    post.detailIntro ?? '',
+  ]
+  if (post.detailSummary?.length) parts.push(...post.detailSummary)
+  if (post.notes?.length) parts.push(...post.notes)
+  if (post.steps?.length) {
+    for (const s of post.steps) {
+      parts.push(s.title, s.description ?? '', s.code ?? '')
+    }
+  }
+  if (post.commands?.length) {
+    for (const c of post.commands) {
+      parts.push(c.command, c.description)
+    }
+  }
+  return parts.join('\n').toLowerCase()
+}
+
+function postMatchesSearch(post: BlogPost, queryTrimmedLower: string): boolean {
+  const tokens = queryTrimmedLower.split(/\s+/).filter(Boolean)
+  if (tokens.length === 0) return true
+  const haystack = buildPostSearchHaystack(post)
+  return tokens.every((t) => haystack.includes(t))
+}
+
 function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
+  const [searchQuery, setSearchQuery] = useState('')
   const categories = ['All', ...Array.from(new Set(blogPosts.map((post) => post.category)))]
-  const filteredPosts =
-    selectedCategory === 'All'
-      ? blogPosts
-      : blogPosts.filter((post) => post.category === selectedCategory)
+  const q = searchQuery.trim().toLowerCase()
+  const filteredPosts = blogPosts
+    .filter((post) => selectedCategory === 'All' || post.category === selectedCategory)
+    .filter((post) => postMatchesSearch(post, q))
 
   return (
-    <section className="page-content mx-auto max-w-6xl">
-      <h3 className="reveal-on-scroll reveal-delay-1 text-4xl font-semibold tracking-tight text-slate-900">Blog</h3>
-      <p className="reveal-on-scroll reveal-delay-2 mt-3 max-w-3xl text-slate-600">
+    <section className="page-content mx-auto max-w-5xl">
+      <h1 className="reveal-on-scroll reveal-delay-1 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+        Blog
+      </h1>
+      <p className="reveal-on-scroll reveal-delay-2 mt-4 max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
         Insights, tips, and practical guides focused on DevOps, cloud infrastructure, and automation workflows.
       </p>
 
-      <div className="reveal-on-scroll reveal-delay-3 mt-8">
-        <h4 className="text-lg font-semibold text-slate-900">Categories</h4>
-        <div className="mt-3 flex flex-wrap gap-2">
+      <div className="reveal-on-scroll reveal-delay-3 mt-10">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900">Categories</h2>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           {categories.map((category) => (
             <button
               key={category}
               type="button"
               onClick={() => setSelectedCategory(category)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+              className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
                 selectedCategory === category
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
               {category}
             </button>
           ))}
+          <div className="ml-auto min-w-0 w-full pt-1 sm:w-72 sm:max-w-sm sm:pt-0 lg:w-80">
+            <label htmlFor="blog-search" className="sr-only">
+              Search posts
+            </label>
+            <input
+              id="blog-search"
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search posts…"
+              autoComplete="off"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none ring-slate-900/5 transition placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-900/10"
+            />
+          </div>
         </div>
       </div>
 
-      <div className="mt-8 space-y-4">
-        {filteredPosts.map((post) => (
+      <div className="mt-10 flex flex-col gap-7 sm:gap-8">
+        {filteredPosts.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-12 text-center text-slate-600">
+            No posts match your filters. Try another category or search term.
+          </p>
+        ) : null}
+        {filteredPosts.map((post, index) => {
+          const stagger = (['reveal-delay-1', 'reveal-delay-2', 'reveal-delay-3', 'reveal-delay-4'] as const)[
+            index % 4
+          ]
+          return (
           <Link
-            key={post.title}
+            key={post.slug}
             to={`/blog/${post.slug}`}
-            className="group reveal-on-scroll reveal-delay-4 block border-b border-slate-200 pb-4"
+            className={`group blog-index-card reveal-on-scroll ${stagger} flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition hover:border-slate-300 hover:shadow-md`}
           >
-            <div className="relative mb-3 h-36 overflow-hidden rounded-xl ring-1 ring-slate-200/70 sm:h-44">
+            <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-slate-100 sm:aspect-[2/1]">
               <img
                 src={post.image}
-                alt={post.title}
-                className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.03]"
               />
             </div>
-            <p className="text-xs font-medium text-slate-500">
-              {post.date} · by {post.author ?? 'Phyo Maung Maung'} · {post.category} · {post.readTime}
-            </p>
-            <h4 className="mt-1 text-xl font-semibold text-slate-900">{post.title}</h4>
-            <p className="mt-2 max-w-4xl text-sm leading-relaxed text-slate-600">{post.excerpt}</p>
+            <div className="flex min-w-0 flex-1 flex-col px-5 py-5 sm:px-8 sm:py-7">
+              <h2 className="text-xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-2xl sm:leading-tight">
+                {post.title}
+              </h2>
+              <p className="mt-3 text-sm text-slate-500 sm:text-base">
+                {post.date}
+                <span className="text-slate-400"> · </span>
+                by {post.author ?? 'Phyo Maung Maung'}
+              </p>
+              <p className="mt-4 line-clamp-3 text-base leading-relaxed text-slate-600 sm:text-[17px] sm:leading-[1.65]">
+                {post.excerpt}
+              </p>
+              <div className="mt-5 flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex rounded-full bg-slate-100 px-3.5 py-1.5 text-xs font-medium text-slate-800 sm:text-sm">
+                  {post.category}
+                </span>
+                <span className="text-xs text-slate-400 sm:text-sm">{post.readTime}</span>
+              </div>
+            </div>
           </Link>
-        ))}
+          )
+        })}
       </div>
     </section>
   )

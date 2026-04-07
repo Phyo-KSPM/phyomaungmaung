@@ -3,9 +3,9 @@ import type { BlogPost } from './blogPostTypes'
 export const openrestyWafPost: BlogPost = {
   slug: 'openresty-webserver',
   title: 'OpenResty — Reverse Proxy + Lua + Redis (Basic Rate-Limiting WAF)',
-  date: 'Draft',
+  date: 'Published · 7 Apr 2026',
   category: 'Web Server',
-  image: '/blog-openresty.svg',
+  image: '/blog-covers/openresty.jpg',
   excerpt:
     'OpenResty ကို reverse proxy အနေနဲ့ သုံးပြီး Lua နဲ့ Redis ပေါင်းကာ IP တစ်ခုချင်းစီအတွက် request count နဲ့ ခေတ္တ block (TTL) လုပ်တဲ့ basic WAF ဥပမာ။ Ubuntu/Debian install၊ `waf.lua`၊ `nginx.conf` ချိန်ပြီး စမ်းသပ်ခြင်း။',
   readTime: '16 min read',

@@ -3,9 +3,9 @@ import type { BlogPost } from './blogPostTypes'
 export const nginxInstallationPost: BlogPost = {
   slug: 'nginx-installation-reverse-proxy-ubuntu',
   title: 'Nginx Complete Guide (Ubuntu) — Static, Proxy, Load Balance, SSL, PM2',
-  date: 'Draft',
+  date: 'Published · 7 Apr 2026',
   category: 'Web Server',
-  image: '/blog-nginx.svg',
+  image: '/blog-covers/nginx.jpg',
   excerpt:
     'Install + UFW၊ folder structure၊ static site (`static-app`)၊ Node/Next reverse proxy (WebSocket headers)၊ upstream load balance၊ Certbot SSL၊ HTTP→HTTPS redirect၊ full 443 config၊ Gzip + security headers၊ PM2၊ debugging — Real use case နဲ့ common errors ပါဝင်ပါတယ်။',
   readTime: '22 min read',

@@ -13,9 +13,9 @@ export const blogPosts: BlogPost[] = [
   {
     slug: 'docker-install-ubuntu-24-04-official-repo',
     title: 'Docker ကို Ubuntu 24.04 (Noble) မှာ Install လုပ်နည်း (Official Repo)',
-    date: 'Draft',
+    date: 'Published · 7 Apr 2026',
     category: 'Docker',
-    image: '/blog-docker-ubuntu.svg',
+    image: '/blog-covers/docker.jpg',
     excerpt: 'Official repository method နဲ့ clean installation workflow ကို အဆင့်လိုက် ထည့်သွင်းဖော်ပြပါမယ်။',
     readTime: '7 min read',
     detailIntro:
@@ -94,9 +94,9 @@ docker run hello-world`,
   {
     slug: 'node-js-installation',
     title: 'Node JS Installation',
-    date: 'Draft',
+    date: 'Published · 7 Apr 2026',
     category: 'Runtime',
-    image: '/blog-nodejs.svg',
+    image: '/blog-covers/nodejs.jpg',
     excerpt: 'Linux server တွေမှာ stable Node.js environment setup နည်းလမ်းများကို တိတိကျကျ ရေးပါမယ်။',
     readTime: '6 min read',
     detailIntro:
@@ -189,9 +189,9 @@ npx -v`,
   {
     slug: 'redis-installation',
     title: 'Redis Installation (Ubuntu — apt + password + Node / Next.js .env)',
-    date: 'Draft',
+    date: 'Published · 7 Apr 2026',
     category: 'Caching',
-    image: '/blog-redis.svg',
+    image: '/blog-covers/redis.jpg',
     excerpt:
       'redis-server install၊ systemd enable/start၊ `requirepass` ထည့်ခြင်း၊ `redis-cli` နဲ့ ping စမ်းခြင်း၊ Next.js / Node project အတွက် `REDIS_URL` မှာ password URL-encode လုပ်ပေးခြင်း။ Password ထဲ `!` `@` `#` စတဲ့ special character ပါရင် `redis.conf` (double quote)၊ shell (single quote)၊ `REDIS_URL` (encode) သုံးပုံကို ဥပမာ `StrongRedis123!@#` နဲ့ ရှင်းပြထားပါတယ်။',
     readTime: '9 min read',
@@ -281,9 +281,9 @@ REDIS_URL=redis://:StrongRedis123%21%40%23@127.0.0.1:6379`,
   {
     slug: 'postgresql-17-installation-ubuntu-24-04',
     title: 'PostgreSQL 17 Installation (Linux အတွက် - Ubuntu 24.04)',
-    date: 'Draft',
+    date: 'Published · 7 Apr 2026',
     category: 'Database',
-    image: '/blog-postgresql.svg',
+    image: '/blog-covers/postgresql.jpg',
     excerpt:
       'PGDG repo နဲ့ PostgreSQL 17 install လုပ်ခြင်း၊ database/user ဖန်တီးခြင်း၊ remote TCP ချိတ်ဆက်ခြင်း၊ firewall နဲ့ schema permission ထိအောင် လမ်းညွှန်ပါမယ်။',
     readTime: '12 min read',

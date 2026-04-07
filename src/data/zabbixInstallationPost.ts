@@ -3,9 +3,9 @@ import type { BlogPost } from './blogPostTypes'
 export const zabbixInstallationPost: BlogPost = {
   slug: 'zabbix-monitoring-server-installation',
   title: 'Zabbix 7.0 LTS — Installation on Ubuntu 24.04 LTS',
-  date: 'Draft',
+  date: 'Published · 7 Apr 2026',
   category: 'Monitoring',
-  image: '/blog-zabbix.svg',
+  image: '/blog-covers/zabbix.jpg',
   excerpt:
     'Ubuntu 24.04 LTS ပေါ်မှာ MySQL、`zabbix-release` repo၊ Zabbix server/frontend/agent၊ DB schema import、`zabbix_server.conf` ချိန်ပြီး Apache မှ `http://host/zabbix` UI setup (wizard + default Admin login) အထိ လမ်းညွှန်ပါမယ်။',
   readTime: '20 min read',
