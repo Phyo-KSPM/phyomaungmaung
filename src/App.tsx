@@ -786,7 +786,7 @@ function BlogPage() {
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.03]"
+                className="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.02]"
               />
             </div>
             <div className="flex min-w-0 flex-1 flex-col px-5 py-5 sm:px-8 sm:py-7">

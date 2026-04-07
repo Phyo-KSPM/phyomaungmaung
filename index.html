@@ -10,5 +10,30 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Chatwoot: primary bubble/header color is NOT set here — set "Widget color" in Chatwoot → Settings → Inboxes → Website inbox (e.g. #0f172a to match site slate-900). -->
+    <script>
+      window.chatwootSettings = {
+        position: 'right',
+        type: 'standard',
+        darkMode: 'light',
+        useBrowserLanguage: true,
+      }
+    </script>
+    <script>
+      ;(function (d, t) {
+        var BASE_URL = 'https://app.chatwoot.com'
+        var g = d.createElement(t),
+          s = d.getElementsByTagName(t)[0]
+        g.src = BASE_URL + '/packs/js/sdk.js'
+        g.async = true
+        s.parentNode.insertBefore(g, s)
+        g.onload = function () {
+          window.chatwootSDK.run({
+            websiteToken: 'iqoiDDZ5dfo5VD8GtwsxdbMj',
+            baseUrl: BASE_URL,
+          })
+        }
+      })(document, 'script')
+    </script>
   </body>
 </html>
