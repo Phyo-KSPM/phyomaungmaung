@@ -5,24 +5,24 @@ export const nginxInstallationPost: BlogPost = {
   title: 'Nginx Complete Guide (Ubuntu) — Static, Proxy, Load Balance, SSL, PM2',
   date: 'Published · 7 Apr 2026',
   category: 'Web Server',
-  image: '/blog-covers/nginx.jpg',
+  image: '/blog-covers/nginx.png',
   excerpt:
-    'Install + UFW၊ folder structure၊ static site (`static-app`)၊ Node/Next reverse proxy (WebSocket headers)၊ upstream load balance၊ Certbot SSL၊ HTTP→HTTPS redirect၊ full 443 config၊ Gzip + security headers၊ PM2၊ debugging — Real use case နဲ့ common errors ပါဝင်ပါတယ်။',
+    'Nginx ထည့်ပြီး static တစ်ခု၊ Next ကို proxy တစ်ခု၊ upstream နဲ့ ဝေမျှတာ၊ Certbot နဲ့ SSL၊ နောက်ဆုံး PM2 နဲ့ log ကြည့်တာ အထိ တစ်လျှောက်လုံး။ အောက်မှာ 502/404 လိုမျိုး ဘာကြောင့် ဖြစ်တတ်လဲလည်း ရေးထားပါတယ်။',
   readTime: '22 min read',
   author: 'Phyo Maung Maung',
   detailIntro:
-    'ဒီလမ်းညွှန်က Ubuntu ပေါ်မှာ Nginx ကို install လုပ်ပြီး static website၊ dynamic app (Node.js / Next.js) reverse proxy၊ multiple backend load balancing၊ Let\'s Encrypt SSL၊ production tuning (Gzip၊ security headers)၊ PM2 နဲ့ process run ချိတ်ပြီး debug လုပ်ပုံကို အဆင့်လိုက် ရေးထားပါတယ်။ Domain (`static.yourdomain.com`, `app.yourdomain.com`) တွေကို မိမိ DNS နဲ့ အစားထိုးပါ။',
+    'ဒါက လက်တွေ့မှာ အသုံးများတဲ့ အပိုင်းတွေကို ပေါင်းထားတာပါ — static၊ reverse proxy၊ load balance၊ SSL၊ နောက်ဆုံး PM2။ `yourdomain.com` ဆိုတဲ့ နေရာတွေကို ကိုယ့်ဒိုမိန်းနဲ့ လဲပါ။',
   detailSummary: [
-    'Config ပြင်ပြီးတိုင်း `sudo nginx -t` စစ်ပြီးမှ `sudo systemctl reload nginx` လုပ်ပါ။',
-    'User → Domain → Nginx (port 80/443) → static file serve သို့မဟုတ် `proxy_pass` နဲ့ backend (Node, Laravel, စသည်)။',
-    'Real use case ဥပမာ — `helpdesk.domain.com` → Next.js :3000; `api.domain.com` → Laravel :8000; `static.domain.com` → HTML build။',
-    '502 / 404 / SSL / WebSocket ပြဿနာတွေကို အောက်က Extra Notes မှာ ကြည့်ပါ။',
+    'ပြင်တိုင်း မမေ့လိုက်ပါနဲ့ — `nginx -t` ပြီးမှ reload။',
+    'လူသုံးတာ → DNS → Nginx → ဖိုင်တွေထုတ်မယ် သို့မဟုတ် backend ကို proxy။',
+    'ဥပမာ — helpdesk က Next၊ api က Laravel၊ static က HTML — တစ်ခုချင်းစီ server block ခွဲထားလို့ရပါတယ်။',
+    'ချိတ်မရတာ ဖြစ်ရင် အောက်က notes ကို နှိပ်ကြည့်ပါ။',
   ],
   steps: [
     {
       title: '🧱 STEP 1 — Install Nginx (Ubuntu)',
       description:
-        'ပြီးရင် browser မှာ `http://your-server-ip` ဝင်ကြည့်ပါ — Nginx default page မြင်ရပါမယ်။',
+        'ထည့်ပြီးရင် IP နဲ့ ဝင်ကြည့်ပါ။ welcome page မြင်ရရင် ပထမဆုံး အဆင့် ပြီးပါပြီ။',
       code: `sudo apt update
 sudo apt install nginx -y
 
@@ -39,7 +39,7 @@ sudo ufw reload`,
     },
     {
       title: '📁 STEP 2 — Folder Structure',
-      description: 'Nginx config နဲ့ virtual host ဖိုင်တွေ ရှိတဲ့ နေရာတွေဖြစ်ပါတယ်။',
+      description: 'config တွေ ဘယ်မှာထားလဲ ဆိုတာ မှတ်ထားရင် နောက်ပိုင်း ပြင်ရလွယ်ပါတယ်။',
       code: `# Typical layout:
 /etc/nginx/
 ├── nginx.conf
@@ -49,7 +49,7 @@ sudo ufw reload`,
     {
       title: '🌐 STEP 3 — Static Website Setup',
       description:
-        '3.1 project folder၊ 3.2 HTML၊ 3.3 Nginx config၊ 3.4 enable site (symlink)၊ 3.5 `nginx -t` + reload။',
+        'ဖိုင်တွေကို `/var/www` အောက်မှာ ထားပါ။ sites-available ထဲမှာ ရေးပြီး sites-enabled ကို symlink နဲ့ ချိတ်ပါ။',
       code: `# 3.1 Create project folder
 sudo mkdir -p /var/www/static-app
 sudo chown -R $USER:$USER /var/www/static-app
@@ -94,7 +94,7 @@ sudo systemctl reload nginx`,
     {
       title: '⚡ STEP 4 — Dynamic App (Node.js / Next.js)',
       description:
-        '4.1 app run (`localhost:3000`)၊ 4.2 `app.conf` reverse proxy (WebSocket headers)၊ 4.3 enable + reload။',
+        'app က localhost:3000 မှာ တက်နေရမယ်။ Next ဆိုရင် WebSocket header တွေ ပါမှ hot reload လိုမျိုး အလုပ်လုပ်ပါတယ်။',
       code: `# 4.1 Run app
 cd /var/www/app
 npm install
@@ -129,7 +129,7 @@ sudo systemctl reload nginx`,
     },
     {
       title: '🔁 STEP 5 — Multi Backend (Load Balancing)',
-      description: 'Node process နှစ်ခု (ဥပမာ port 3000၊ 3001) ကို `upstream` နဲ့ ဝေမျှပါတယ်။',
+      description: 'process နှစ်ခုကို `least_conn` နဲ့ ဝေမျှတာ — တစ်ခုကျနေရင် နောက်တစ်ခုကို ပို့ပါတယ်။',
       code: `sudo nano /etc/nginx/sites-available/lb.conf
 
 upstream backend_cluster {
@@ -155,7 +155,7 @@ sudo systemctl reload nginx`,
     {
       title: '🔒 STEP 6 — Install SSL (HTTPS)',
       description:
-        'Certbot က certificate ထည့်ပြီး nginx config မှာ SSL နဲ့ redirect ကို အလိုအလျောက် ပြင်ပေးနိုင်ပါတယ်။',
+        'Certbot `--nginx` က config ကို အများအားဖြင့် ကိုယ့်ဘာသာ ပြင်ပေးပါတယ်။ မလုပ်ရင် manual redirect ကို STEP 7 မှာ ကြည့်ပါ။',
       code: `sudo apt install certbot python3-certbot-nginx -y
 
 # Generate SSL (example domain)
@@ -200,7 +200,7 @@ sudo certbot renew --dry-run`,
     {
       title: '⚙️ STEP 9 — Production Optimization',
       description:
-        'Gzip ကို `/etc/nginx/nginx.conf` ရဲ့ `http { }` block ထဲမှာ ဖွင့်ပါ။ Security headers ကို `server` block ထဲမှာ ထည့်ပါ။',
+        'gzip ကို http {} ထဲ၊ header တွေကို server {} ထဲ — မထည့်လဲ အလုပ်လုပ်ပါတယ်၊ ထည့်ရင် ပိုကောင်းပါတယ်။',
       code: `# Inside http { } — gzip
 gzip on;
 gzip_types text/plain text/css application/json application/javascript;
@@ -233,8 +233,9 @@ sudo tail -f /var/log/nginx/access.log`,
     { command: 'sudo certbot renew --dry-run', description: 'Test SSL renewal' },
   ],
   notes: [
-    '📌 FINAL FLOW (အရေးကြီး): User → Domain → Nginx (80/443) → Static (file serve) သို့မဟုတ် Dynamic (proxy → Node.js / အခြား backend)။',
-    '🔥 Real use case: `helpdesk.domain.com` → Nginx → Next.js (:3000); `api.domain.com` → Nginx → Laravel (:8000); `static.domain.com` → Nginx → HTML build။',
-    '❗ Common errors — 502: backend down သို့မဟုတ် `proxy_pass` မှားနေ; 404: `root` path မှား သို့မဟုတ် `try_files` မှား; SSL fail: cert path မှား သို့မဟုတ် domain မကိုက်ညီ; WebSocket fail: `Upgrade` / `Connection` header မပါ။',
+    'လမ်းကြောင်းတစ်ချက်တည်း — browser → Nginx → ဖိုင်သို့မဟုတ် backend။',
+    '502 ဆိုရင် အများအားဖြင့် app မတက်ရသေးတာ သို့မဟုတ် proxy_pass port မှား။',
+    '404 ဆိုရင် root လမ်းမှား သို့မဟုတ် build ဖိုင်မရှိတာ။ SSL ဆိုရင် cert နဲ့ server_name ကိုက်လား စစ်ပါ။',
+    'WebSocket မလုပ်ရင် proxy_set_header Upgrade/Connection ကို ပြန်ကြည့်ပါ။',
   ],
 }

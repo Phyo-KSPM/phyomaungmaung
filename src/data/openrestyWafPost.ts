@@ -5,23 +5,23 @@ export const openrestyWafPost: BlogPost = {
   title: 'OpenResty — Reverse Proxy + Lua + Redis (Basic Rate-Limiting WAF)',
   date: 'Published · 7 Apr 2026',
   category: 'Web Server',
-  image: '/blog-covers/openresty.jpg',
+  image: '/blog-covers/openresty.png',
   excerpt:
-    'OpenResty ကို reverse proxy အနေနဲ့ သုံးပြီး Lua နဲ့ Redis ပေါင်းကာ IP တစ်ခုချင်းစီအတွက် request count နဲ့ ခေတ္တ block (TTL) လုပ်တဲ့ basic WAF ဥပမာ။ Ubuntu/Debian install၊ `waf.lua`၊ `nginx.conf` ချိန်ပြီး စမ်းသပ်ခြင်း။',
+    'OpenResty + Lua + Redis နဲ့ IP တစ်ခုချင်းစီ request လိုက် လုပ်ပြီး ပိတ်တဲ့ အရိုးအချင်းစား WAF ဥပမာ။ ၁၀ စက္ကန့်အတွင်း ၂၀ ကျော်ရင် ခဏပိတ် — ကိုယ့်အတွက် ကိုယ် ပြင်ပါ။',
   readTime: '16 min read',
   author: 'Phyo Maung Maung',
   detailIntro:
-    'OpenResty ကို reverse proxy အနေနဲ့ သုံးပြီး Lua script နဲ့ Redis ကို ပေါင်းကာ custom WAF (Web Application Firewall) တည်ဆောက်တဲ့ နည်းလမ်းဟာ performance ကောင်းတဲ့ architecture ဖြစ်နိုင်ပါတယ်။ ဒီလမ်းညွှန်မှာ IP တစ်ခုကနေ request အများကြီး (ဥပမာ brute-force / abuse) လာရင် Redis မှာ ခေတ္တ block (block time သတ်မှတ်) လုပ်မယ့် basic rate limiting ကို ပြပါမယ်။ လမ်းညွှန်က Ubuntu / Debian အတွက် ရည်ရွယ်ပါတယ်။ ဥပမာ threshold ကို **၁၀ စက္ကန့်အတွင်း request ၂၀ ထက်ကျော်ရင် ၆၀ စက္ကန့် block** လို့ ထားထားပါတယ်။',
+    'ဒါက lab/tutorial အဆင့်ပါ။ အမှန်တကယ် production မှာ CDN၊ real IP၊ HTTPS ကို စဉ်းစားရပါသေးတယ်။ ဒီမှာ လုပ်ချင်တာက IP တစ်ခုက short time မှာ request တွေများလာရင် Redis မှာ အမှတ်အသားလုပ်ပြီး ခဏပိတ်တာပါ။',
   detailSummary: [
-    'Redis မှာ `rate:<ip>` နဲ့ `block:<ip>` key တွေနဲ့ ရေတွက်ပြီး TTL နဲ့ auto-expire လုပ်နိုင်ပါတယ်။',
-    '`lua-resty-redis` က OpenResty နဲ့ ပါလာတာများပြီး သီးခြား luarocks install မလိုတာလည်း ဖြစ်နိုင်ပါတယ်။',
-    'Static asset path တွေကို WAF မထိအောင် ခွဲထားပြီး API / main route မှာပဲ `access_by_lua_file` စစ်နိုင်ပါတယ်။',
+    '`rate:` နဲ့ `block:` key နဲ့ ရေတွက်ပါတယ်။ expire ကို Lua မှာ သတ်မှတ်ထားပါတယ်။',
+    'lua-resty-redis က OpenResty package နဲ့ ပါလာတတ်ပါတယ်။ မပါရင် doc ကြည့်ပါ။',
+    'js/css ကို WAF မထိအောင် location ခွဲထားတာ latency ကို လျှော့ပေးပါတယ်။',
   ],
   steps: [
     {
       title: 'အဆင့် (၁) — Redis server install',
       description:
-        'IP တွေရဲ့ request count နဲ့ block time (TTL) မှတ်သားဖို့ Redis ကို သွင်းပါ။',
+        'Redis မတက်ရင် အောက်က Lua က error ရေးပြီး request ကို မပိတ်နိုင်ပါဘူး။',
       code: `sudo apt update
 sudo apt install redis-server -y
 
@@ -31,7 +31,7 @@ sudo systemctl enable redis-server`,
     {
       title: 'အဆင့် (၂) — OpenResty install',
       description:
-        'OpenResty တွင် Nginx နှင့် LuaJIT ပါဝင်ပါတယ်။ `lua-resty-redis` က library အများစုမှာ ပါဝင်ပြီး Redis ချိတ်ဆက်ရန် ထပ်သွင်းစရာ မလိုတာလည်း ဖြစ်နိုင်ပါတယ်။',
+        'repo ကို Ubuntu version နဲ့ ကိုက်အောင် ထည့်ပါ။ apt-key ဟောင်း အသုံးပြုရင် နောက်ပိုင်း signed-by ကို ကြည့်ပါ။',
       code: `sudo apt install -y software-properties-common wget
 
 wget -qO - https://openresty.org/package/pubkey.gpg | sudo apt-key add -
@@ -44,7 +44,7 @@ sudo apt install -y openresty`,
     {
       title: 'အဆင့် (၃) — WAF အတွက် Lua script (`waf.lua`)',
       description:
-        '`/usr/local/openresty/nginx/conf/lua/waf.lua` ဖန်တီးပြီး အောက်က logic ထည့်ပါ။ မှတ်ချက် — စာသားမှာ **၂၀ req / ၁၀ စက္ကန့်** လို့ ရည်ရွယ်ထားပြီး code မှာ `req_count > 20` သုံးထားပါတယ်။',
+        'နံပါတ် ၂၀ နဲ့ ၁၀ စက္ကန့်က ကိုယ့်လိုအပ်ချက်နဲ့ လဲလို့ရပါတယ်။',
       code: `sudo mkdir -p /usr/local/openresty/nginx/conf/lua/
 sudo nano /usr/local/openresty/nginx/conf/lua/waf.lua`,
     },
@@ -93,7 +93,7 @@ red:set_keepalive(10000, 100)`,
     },
     {
       title: 'waf.lua — Redis password သုံးရင်',
-      description: '`YourStrongPassword123` ကို မိမိ `requirepass` နဲ့ အစားထိုးပါ။',
+      description: 'Redis မှာ password ထားထားရင် auth ကို မမေ့ပါနဲ့။',
       code: `local redis = require "resty.redis"
 local red = redis:new()
 
@@ -144,7 +144,7 @@ red:set_keepalive(10000, 100)`,
     {
       title: 'အဆင့် (၄) — Nginx configuration (reverse proxy & WAF)',
       description:
-        '`/usr/local/openresty/nginx/conf/nginx.conf` ကို ပြင်ပါ။ `proxy_pass` မှာ မိမိ backend (ဥပမာ `127.0.0.1:3000`) ကို ထားပါ။',
+        'backend port ကို ကိုယ့်အက်ပ်နဲ့ ကိုက်အောင် ထားပါ။',
       code: `sudo nano /usr/local/openresty/nginx/conf/nginx.conf
 
 # http { } အတွင်း ဥပမာ — မိမိ worker_processes / server_name ကို ချိန်ပါ
@@ -185,7 +185,7 @@ http {
     {
       title: 'အဆင့် (၅) — OpenResty restart နှင့် စမ်းသပ်ခြင်း',
       description:
-        'Backend app က `127.0.0.1:3000` မှာ run နေရမယ်။ curl loop နဲ့ အကြိမ်များများ ပို့ကြည့်ပါ — ပထမ **၂၀** request ကို ၁၀ စက္ကန့်အတွင်း ပို့ပြီးရင် နောက်တစ်ကြိမ်ကစပြီး **403** ရနိုင်ပါတယ်။ ခေတ္တ block ပြီးမှ ပြန်ခေါ်ကြည့်ပါ။',
+        'app က 3000 မှာ တက်နေရမယ်။ curl loop နဲ့ ပြေးကြည့်ရင် တစ်ချိန်မှာ 403 ရပါလိမ့်မယ်။',
       code: `sudo /usr/local/openresty/bin/openresty -t
 sudo systemctl restart openresty
 
@@ -203,9 +203,9 @@ redis-cli keys "block:*"`,
     { command: 'redis-cli ping', description: 'Check Redis is up (if no auth)' },
   ],
   notes: [
-    'Production မှာ `apt-key add` ဟောင်း workflow အစား OpenResty doc ကနေ GPG `signed-by` နည်းလမ်းကို စဉ်းစားပါ။',
-    'Rate limit နဲ့ block duration ကို မိမိ traffic pattern နဲ့ ကိုက်အောင် `expire` နှင့် `req_count` threshold ပြင်ပါ။',
-    'Redis မတက်ရင် WAF script က error log ရေးပြီး request ကို မပိတ်နိုင်တာမျိုး ဖြစ်နိုင်လို့ Redis availability ကို စောင့်ကြည့်ပါ။',
-    'HTTPS၊ real IP (CDN နောက်က `X-Forwarded-For`)၊ shared IP စတဲ့ အခြေအနေတွေမှာ `ngx.var.remote_addr` တစ်ခုတည်းမမှီဘဲ ထပ်ပြင်ရပါတယ်။',
+    'apt-key က ခေတ်ဟောင်း — doc ထဲက GPG နည်းလမ်းကို ကြည့်ပါ။',
+    'threshold နဲ့ block အချိန်က ကိုယ့်ဆိုင်ရာ traffic နဲ့ မတူရင် ပြင်ပါ။',
+    'Redis down ဆိုရင် ဒီစာမျက်နှာက အကာအကွယ် မရှိပါဘူး။',
+    'CDN နောက်က IP ဆိုရင် `remote_addr` တစ်ခုတည်းနဲ့ မပြီးပါဘူး။',
   ],
 }

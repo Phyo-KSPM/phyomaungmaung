@@ -4,6 +4,7 @@ import type { BlogPost } from './blogPostTypes'
 import { nginxInstallationPost } from './nginxInstallationPost'
 import { zabbixInstallationPost } from './zabbixInstallationPost'
 import { openrestyWafPost } from './openrestyWafPost'
+import { pm2InstallationPost } from './pm2InstallationPost'
 
 export function postHasFullContent(post: BlogPost) {
   return Boolean(post.steps?.length)
@@ -16,37 +17,38 @@ export const blogPosts: BlogPost[] = [
     date: 'Published · 7 Apr 2026',
     category: 'Docker',
     image: '/blog-covers/docker.jpg',
-    excerpt: 'Official repository method နဲ့ clean installation workflow ကို အဆင့်လိုက် ထည့်သွင်းဖော်ပြပါမယ်။',
+    excerpt:
+      '24.04 မှာ Docker ထည့်မယ်ဆိုရင် official repo ကနေတိုက်ရိုက်ယူတာက အသင့်တော်ပါတယ်။ အောက်က အဆင့်တွေက အဲဒီ လမ်းကြောင်းကို လိုက်ရုံပါ။',
     readTime: '7 min read',
     detailIntro:
-      'အောက်ကနည်းလမ်းက Docker official repository ကို သုံးထားတဲ့ recommended method ဖြစ်ပါတယ်။ Ubuntu default repo ထက် package version ပိုတိကျပြီး Docker Engine, CLI, Buildx, Compose plugin တွေကို clean ပုံစံနဲ့ install လုပ်နိုင်ပါတယ်။',
+      'Ubuntu ထဲက default repo က Docker version က နောက်ကျနေတတ်လို့ Docker က ထုတ်တဲ့ apt source ကို ထည့်ပြီး install လိုက်တာပါ။ Engine၊ CLI၊ buildx၊ compose plugin တွေ တစ်ချိန်တည်းရပြီး နောက်ပိုင်း `apt upgrade` နဲ့ လိုက်လုပ်ရလွယ်ပါတယ်။',
     detailSummary: [
-      'Ubuntu 24.04 server / VM / local machine အတွက်သုံးလို့ရပါတယ်။',
-      'Official GPG key နဲ့ repository သုံးထားလို့ update lifecycle ပိုလွယ်ပါတယ်။',
-      'Install ပြီးတာနဲ့ container runtime, CLI tools, Buildx, Compose plugin အားလုံးတစ်ခါတည်းရပါမယ်။',
+      'Server လား VM လား လက်တွေ့မှာ သုံးတဲ့ 24.04 မှာအလုပ်လုပ်ပါတယ်။',
+      'GPG နဲ့ repo ချိတ်ထားတော့ package အသစ်တွေ ရှင်းရှင်းလင်းလင်း ရပါတယ်။',
+      'နောက်ဆုံး မှာ hello-world နဲ့ စမ်းကြည့်ပြီး ပြီးသွားကြောင်း သေချာပါစေ။',
     ],
     steps: [
       {
         title: '1. System Update',
-        description: 'Package metadata နဲ့ installed packages တွေကို latest state ရောက်အောင် update လုပ်ပါ။',
+        description: 'ပထမ `apt update` / `upgrade` လုပ်ပါ။ မလုပ်ဘဲရှိရင် နောက်တစ်ဆင့်မှာ dependency ပွက်တတ်ပါတယ်။',
         code: `sudo apt update
 sudo apt upgrade -y`,
       },
       {
         title: '2. Required Packages Install',
-        description: 'Repository key နဲ့ HTTPS transport အတွက်လိုအပ်မယ့် base packages တွေကို install လုပ်ပါ။',
+        description: 'ca-certificates၊ curl၊ gnupg — repo key ဆွဲဖို့ အခြေခံတွေ ပဲ။',
         code: `sudo apt install ca-certificates curl gnupg -y`,
       },
       {
         title: '3. Docker GPG Key Add',
-        description: 'Docker official signing key ကို `/etc/apt/keyrings` ထဲသိမ်းပြီး readable ဖြစ်အောင် permission ပေးပါ။',
+        description: 'Key ကို `/etc/apt/keyrings` မှာ သိမ်းပါ။ chmod နဲ့ ဖတ်လို့ရအောင် ထားတာပါ။',
         code: `sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc`,
       },
       {
         title: '4. Docker Repository Add',
-        description: 'Ubuntu codename အလိုက် Docker official apt repository ကို register လုပ်ပြီး package list refresh ပြန်လုပ်ပါ။',
+        description: '`VERSION_CODENAME` နဲ့ noble စတဲ့ codename ကိုယ်တိုင် မထည့်ရဘဲ ရပါတယ်။ ထည့်ပြီး `apt update` ပြန်လုပ်ပါ။',
         code: `echo \\
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \\
   $(. /etc/os-release && echo $VERSION_CODENAME) stable" | \\
@@ -56,22 +58,22 @@ sudo apt update`,
       },
       {
         title: '5. Docker Engine Install',
-        description: 'Docker Engine, CLI, container runtime, Buildx, Compose plugin အားလုံးကို install လုပ်ပါ။',
+        description: 'ဒီတစ်ကြောင်းနဲ့ engine + cli + buildx + compose plugin အထိ တစ်ခါတည်း။',
         code: `sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y`,
       },
       {
         title: '6. Docker Service Status Check',
-        description: 'Docker daemon service running ဖြစ်နေလား စစ်ပါ။',
+        description: '`active (running)` လား ကြည့်ပါ။ မဟုတ်ရင် journalctl နဲ့ လိုက်ကြည့်ပါ။',
         code: `sudo systemctl status docker`,
       },
       {
         title: '7. sudo မလိုအောင် User Permission ပေးပါ',
-        description: 'Optional but recommended. Current user ကို docker group ထဲထည့်ပြီး logout / login ပြန်ဝင်ပါ။',
+        description: 'စိတ်ကြိုက်။ `docker` group ထဲ ထည့်ပြီး session အသစ်ဝင်မှ အလုပ်ဝင်ပါတယ်။',
         code: `sudo usermod -aG docker $USER`,
       },
       {
         title: '8. Test Installation',
-        description: 'Install ပြီးရင် hello-world container နဲ့ quick verification လုပ်လို့ရပါတယ်။',
+        description: 'hello-world ပြေးကြည့်ပြီး ပြီးရင် ပေါ့။',
         code: `docker --version
 docker compose version
 docker run hello-world`,
@@ -85,9 +87,9 @@ docker run hello-world`,
       { command: 'docker rm <id>', description: 'Remove container' },
     ],
     notes: [
-      'Production server ပေါ်မှာ firewall policy နဲ့ disk usage ကို install ပြီးတာနဲ့စစ်ထားတာကောင်းပါတယ်။',
-      'Compose plugin သုံးမယ်ဆို `docker compose` syntax ကိုသုံးပါ, legacy `docker-compose` မဟုတ်ပါ။',
-      'Ubuntu user permission ပြောင်းပြီးနောက် shell session ဟောင်းမှာ group change မတက်သေးနိုင်လို့ logout / login ပြန်လုပ်ပါ။',
+      'ပြီးတာနဲ့ disk နဲ့ firewall ကို မေ့မနေပါနဲ့။',
+      'Compose အသစ် က `docker compose` (space) — ခေါင်းစဉ်ဟောင်း `docker-compose` နဲ့ မရောပါနဲ့။',
+      'group ထည့်ပြီးပေမယ့် terminal ဟောင်းမှာ ဆက်သုံးနေရင် `newgrp docker` လုပ်ပါ၊ မဟုတ်ရင် ထွက်ဝင်ပါ။',
     ],
   },
   openrestyWafPost,
@@ -97,59 +99,54 @@ docker run hello-world`,
     date: 'Published · 7 Apr 2026',
     category: 'Runtime',
     image: '/blog-covers/nodejs.jpg',
-    excerpt: 'Linux server တွေမှာ stable Node.js environment setup နည်းလမ်းများကို တိတိကျကျ ရေးပါမယ်။',
+    excerpt:
+      'nvm လည်း မဟုတ်၊ distro repo လည်း မဟုတ်ဘဲ — nodejs.org က LTS tarball ဆွဲပြီး `/usr/local` မှာ လက်တွေ့ထားတဲ့ နည်းပါ။',
     readTime: '6 min read',
     detailIntro:
-      'Node.js official website download page ကနေ Long Term Support (LTS) version ရဲ့ Standalone Binary (.xz) link ကိုယူပြီး Linux server ပေါ်မှာ manual binary installation လုပ်မယ့်နည်းလမ်းဖြစ်ပါတယ်။ Package manager မသုံးဘဲ version ကိုတိုက်ရိုက်ထိန်းချုပ်ချင်တဲ့အခါ ဒီနည်းလမ်းက အလွန်အသုံးဝင်ပါတယ်။',
+      'ဒါက repo မချိတ်ဘဲ binary တိုက်ရိုက်ချတဲ့ နည်းပါ။ version ကိုယ့်လက်ထဲ ထိန်းချင်တာ၊ သို့မဟုတ် server မှာ apt source ထပ်မထည့်ချင်တဲ့အခါ သုံးလို့ကောင်းပါတယ်။ လင့်ခ်က တစ်ခါတလေ ပြောင်းတော့ download page မှာ LTS ကို နှိပ်ပြီး x64 tarball ကို ယူပါ။',
     detailSummary: [
-      'Official standalone binary ကိုသုံးတာကြောင့် upstream release နဲ့တန်းတူ version ထိန်းနိုင်ပါတယ်။',
-      'Package repository မစီစဉ်ချင်တဲ့ server တွေမှာ lightweight setup အဖြစ်သုံးလို့ရပါတယ်။',
-      'Symlink method သုံးထားလို့ upgrade/replacement workflow လည်းလွယ်ပါတယ်။',
+      'Official tarball ဆိုတော့ nodejs.org မှာ ထုတ်တဲ့ version နဲ့ တူအောင် ထိန်းလို့ရပါတယ်။',
+      'Symlink သုံးထားတော့ အသစ်ထပ်တဲ့အခါ ဖိုင်တွေလဲပြီး လင့်ခ်ပြန်ချိတ်ရုံပါ။',
+      'Production မှာ PM2 / systemd နဲ့ မတိုက်ခင်မှာ path ကို တစ်ချက်စစ်ပါ။',
     ],
     steps: [
       {
         title: '1. Download Page မှ LTS Binary Link ယူပါ',
         description:
-          'Node.js official website `https://nodejs.org/en/download` ကိုဝင်ပြီး မိမိအသုံးပြုမယ့် LTS version နဲ့ OS architecture ကိုရွေးပါ။ အောက်ကိုနည်းနည်းဆင်းပြီး `Standalone Binary (.xz)` button ပေါ်မှာ right click နှိပ်ကာ `Copy link address` ယူပါ။ လက်ရှိ official LTS v24 line အတွက် Linux x64 link က အောက်ပါပုံစံဖြစ်ပါတယ်။',
+          '`nodejs.org/en/download` မှာ LTS ရွေးပြီး Linux x64 ဆိုရင် `.tar.xz` လင့်ခ်ကို copy လုပ်ပါ။ အောက်က wget မှာ ထည့်ထားတဲ့ နံပါတ်က ဥပမာ — ကိုယ့်ရဲ့ လင့်ခ်နဲ့ မတူရင် လင့်ခ်ကို လဲပါ။',
         code: `sudo wget https://nodejs.org/dist/v24.14.1/node-v24.14.1-linux-x64.tar.xz`,
       },
       {
         title: '2. Download File ရောက်မရောက်စစ်ပါ',
-        description:
-          'Download ပြီးသွားရင် tar.xz file ကို current directory ထဲမှာတွေ့ရပါမယ်။ File size နဲ့ filename ကိုအရင်စစ်ထားရင် extract step မှာပိုသေချာပါတယ်။',
+        description: '`ls -lh` နဲ့ mb အရွယ်က အမှန်လား ကြည့်ပါ။ ဖိုင်အမည် မှားနေရင် နောက်တစ်ဆင့် မှားပါလိမ့်မယ်။',
         code: `ls -lh node-v24.14.1-linux-x64.tar.xz`,
       },
       {
         title: '3. Extract လုပ်ပါ',
-        description:
-          'Downloaded archive ကို extract လုပ်ပြီး Node.js binary folder ထုတ်ယူပါ။ Extract ပြီးရင် folder name ကို `ls -la` နဲ့မြင်ရပါမယ်။',
+        description: 'tar -xf နဲ့ ဖြေပါ။ ဖိုင်တွေက current folder အောက်မှာ ပေါ်လာပါမယ်။',
         code: `sudo tar -xf node-v24.14.1-linux-x64.tar.xz
 ls -la`,
       },
       {
         title: '4. Extracted Folder ကို System Location ထဲရွှေ့ပါ',
-        description:
-          'Node runtime folder ကို standard install location တစ်ခုအဖြစ် `/usr/local/nodejs` အောက်ရွှေ့ထားပါ။',
+        description: '`/usr/local/nodejs` လို့ ထားရင် နောက်တစ်ခါတန်း upgrade လုပ်ရတာ မှတ်လွယ်ပါတယ်။',
         code: `sudo mv node-v24.14.1-linux-x64 /usr/local/nodejs`,
       },
       {
         title: '5. Symlink Create လုပ်ပါ',
-        description:
-          'Linux ရဲ့ default command path ဖြစ်တဲ့ `/usr/local/bin` ထဲ `node`, `npm`, `npx` command တွေကို symlink ချိတ်ပေးရပါမယ်။',
+        description: '`/usr/local/bin` က PATH ထဲမှာ အများအားဖြင့် ပါပြီးသား။ node / npm / npx ကို အဲဒီဘက်ကို ချိတ်ပါ။',
         code: `sudo ln -s /usr/local/nodejs/bin/node /usr/local/bin/node
 sudo ln -s /usr/local/nodejs/bin/npm /usr/local/bin/npm
 sudo ln -s /usr/local/nodejs/bin/npx /usr/local/bin/npx`,
       },
       {
         title: '6. PATH Verify လုပ်ပါ',
-        description:
-          'Environment PATH ထဲ `/usr/local/bin` ပါမပါစစ်ပါ။ ပါနေပြီဆိုရင် command တွေကို terminal restart မလိုဘဲခေါ်လို့ရနိုင်ပါတယ်။',
+        description: '`echo $PATH` မှာ `/usr/local/bin` ရှိလား။ မရှိရင် profile ထဲ ထည့်ပါ။',
         code: `echo $PATH`,
       },
       {
         title: '7. Node / npm / npx Version Test',
-        description:
-          'Installation success ဖြစ်မဖြစ် version commands နဲ့စစ်ပါ။ Terminal restart မလိုဘဲအလုပ်လုပ်ရမှာဖြစ်ပါတယ်။',
+        description: 'version သုံးခုလုံး ထုတ်ကြည့်ပါ။ error ရရင် symlink path ကို ပြန်စစ်ပါ။',
         code: `node -v
 npm -v
 npx -v`,
@@ -157,7 +154,7 @@ npx -v`,
       {
         title: '8. Version Upgrade လုပ်ချင်ရင်',
         description:
-          'Version အသစ်သို့ပြောင်းချင်ရင် အရင် symlink တွေကိုဖျက်ပြီး binary အသစ်ကို download/extract/move/symlink ပြန်လုပ်ပါ။ အောက်က example က latest v24.14.1 ကို one-shot install ပြန်လုပ်တဲ့ flow ဖြစ်ပါတယ်။',
+          'အဟောင်း symlink ဖျက်ပြီး tarball အသစ် ဆွဲပြန်၊ extract ပြန်၊ `/usr/local/nodejs` ကို အစားထိုးပြီး လင့်ခ်ပြန်ချိတ် — အောက်ကတွေက အဲဒီ flow ကို တစ်ကြောင်းချင်းစီ ပြထားတာပါ။',
         code: `sudo rm /usr/local/bin/node
 sudo rm /usr/local/bin/npm
 sudo rm /usr/local/bin/npx
@@ -181,28 +178,29 @@ npx -v`,
       { command: 'ls -la /usr/local/nodejs/bin', description: 'Installed Node.js binaries list' },
     ],
     notes: [
-      'Current official LTS download page မှာ `v24.14.1` ကိုပြထားပြီး Linux x64 standalone binary link ကိုအသုံးပြုထားပါတယ်.',
-      'Existing `/usr/local/nodejs` folder ရှိပြီးသားဆိုရင် move မလုပ်ခင် rename/remove strategy သတ်မှတ်ထားပါ.',
-      'Production server မှာ upgrade မလုပ်ခင် running PM2 services or systemd units တွေ compatibility စစ်ထားတာကောင်းပါတယ်.',
+      'ဆောင်းပါးထဲက wget URL က ဥပမာ — ကိုယ့်ရဲ့ LTS နံပါတ်နဲ့ မတူရင် လင့်ခ်ကို လဲပါ။',
+      '`/usr/local/nodejs` အတွင်းမှာ အဟောင်း folder ကျန်နေရင် move မတိုက်ခင် နာမည်ပြောင်း သို့မဟုတ် ဖျက်ပါ။',
+      'PM2 သို့မဟုတ် systemd နဲ့ app တက်နေရင် upgrade မတိုက်ခင် ခဏရပ်ပြီး ပြန်တက်ပါ။',
     ],
   },
+  pm2InstallationPost,
   {
     slug: 'redis-installation',
     title: 'Redis Installation (Ubuntu — apt + password + Node / Next.js .env)',
     date: 'Published · 7 Apr 2026',
     category: 'Caching',
-    image: '/blog-covers/redis.jpg',
+    image: '/blog-covers/redis.png',
     excerpt:
-      'redis-server install၊ systemd enable/start၊ `requirepass` ထည့်ခြင်း၊ `redis-cli` နဲ့ ping စမ်းခြင်း၊ Next.js / Node project အတွက် `REDIS_URL` မှာ password URL-encode လုပ်ပေးခြင်း။ Password ထဲ `!` `@` `#` စတဲ့ special character ပါရင် `redis.conf` (double quote)၊ shell (single quote)၊ `REDIS_URL` (encode) သုံးပုံကို ဥပမာ `StrongRedis123!@#` နဲ့ ရှင်းပြထားပါတယ်။',
+      'apt နဲ့ redis-server ထည့်ပြီး password ကောက်ပြီး `redis-cli` နဲ့ စမ်းပါ။ app မှာက `REDIS_URL` — စာလုံးထဲ `!@#` လိုမျိုး ပါရင် encode လုပ်ရတာ သတိပြုပါ။ အောက်မှာ `StrongRedis123!@#` နဲ့ အပြည့်အစုံ ရေးထားပါတယ်။',
     readTime: '9 min read',
     author: 'Phyo Maung Maung',
     detailIntro:
-      'Ubuntu ပေါ်မှာ distro package (`redis-server`) သုံးပြီး Redis ကို တပ်ဆင်ပြီး systemd နဲ့ auto-start လုပ်ပါမယ်။ Authentication အတွက် `/etc/redis/redis.conf` ထဲ `requirepass` ထည့်ပြီး application ချိတ်တဲ့အခါ password ထဲ special character ပါရင် **သုံးနေရာ** ကိုသတိထားပါ — config မှာ quote (`#` က comment ဖြစ်နိုင်သောကြောင့်)၊ shell မှာ `redis-cli` argument ကို quote နဲ့ ကာကွယ်၊ app connection string (`REDIS_URL`) မှာ password ကို **URL-encoded** ထည့်ပါ။ အောက်က **Step 6** မှာ ဥပမာ password `StrongRedis123!@#` နဲ့ သုံးပုံတစ်ခုလုံး ရေးထားပါတယ်။',
+      'ဒါက `apt install redis-server` လမ်းကြောင်းပါ။ `requirepass` ထည့်ပြီးရင် config ပြန်ဖတ်အောင် restart လုပ်ရပါမယ်။ password ထဲမှာ `#` ပါရင် redis.conf မှာ comment အဖြစ် ဖတ်မိတတ်လို့ double quote လိုအပ်ပါတယ်။ shell ကို ဖြတ်တဲ့အခါ `!` တွေ bash က အဓိပ္ပါယ်ဖွင့်တတ်လို့ single quote ကောင်းပါတယ်။ app မှာ `REDIS_URL` မှာတော့ `%21` စတဲ့ encode သုံးရပါတယ်။ အဲဒီ သုံးနေရာ သုံးမျိုး ကို **Step 6** မှာ တစ်ခုချင်းစီ ရေးထားပါတယ်။',
     detailSummary: [
-      '`apt` နဲ့ install လုပ်ပြီး `systemctl enable` + `start` နဲ့ boot time မှာ service ပေါ်အောင် ထားနိုင်ပါတယ်။',
-      '`requirepass` ပြောင်းပြီးတိုင်း `systemctl restart redis-server` လုပ်မှ အသစ်အတိုင်း အလုပ်လုပ်ပါမယ်။',
-      'Next.js / Node မှာ `REDIS_URL=redis://:encoded-password@127.0.0.1:6379` ပုံစံနဲ့ သိမ်းပါ — plain password ကို repo ထဲ commit မလုပ်ပါနဲ့။',
-      'Password ထဲ `!` `@` `#` စတဲ့ character တွေပါရင် — `redis.conf` မှာ `requirepass "…"` (double quote)၊ terminal မှာ `redis-cli -a \'…\'` (single quote)၊ `REDIS_URL` မှာ `encodeURIComponent()` နဲ့ encode လုပ်ထားတဲ့ password သုံးပါ။ အသေးစိတ် ဥပမာ `StrongRedis123!@#` ကို **Step 6** မှာ ကြည့်ပါ။',
+      'systemd နဲ့ boot မှာ auto-start လုပ်ချင်ရင် enable ထားပါ။',
+      'conf ပြင်တိုင်း restart မလုပ်ရင် အဟောင်းပဲ ဖတ်နေပါလိမ့်မယ်။',
+      '`REDIS_URL` မှာ စာသားတိုက်ရိုက် မထည့်ပါနဲ့ — git ထဲ မရောက်အောင် သေချာပါစေ။',
+      'Special char တွေအတွက် conf / cli / URL သုံးပုံကို Step 6 မှာ ဖတ်ပါ။',
     ],
     steps: [
       {
@@ -219,8 +217,7 @@ sudo systemctl status redis-server`,
       },
       {
         title: '3. Password ထည့်ခြင်း — redis.conf',
-        description:
-          '`requirepass` line ကို ရှာပြီး comment ဖြုတ်ပါ။ အောက်က ဥပမာ password ကို လမ်းညွှန်တစ်လျှောက်တည်း သုံးထားပါတယ်။',
+        description: '`requirepass` ရှာပြီး ဖွင့်ပါ။ အောက်က စာသားက ဥပမာ — production မှာ မိမိ password နဲ့ လဲပါ။',
         code: `sudo nano /etc/redis/redis.conf
 
 # Uncomment / add (example password — production မှာ မိမိသတ်မှတ်ပါ):
@@ -230,22 +227,21 @@ sudo systemctl restart redis-server`,
       },
       {
         title: '4. Password နဲ့ ping စမ်းခြင်း',
-        description:
-          '`redis-cli` မှာ `-a` နဲ့ password ပေးပြီး ping စမ်းပါ။',
+        description: '`-a` နဲ့ ပေးပြီး `PONG` လိုချင်တာ။',
         code: `redis-cli -a StrongRedis123 ping
 # Expected: PONG`,
       },
       {
         title: '5. Project .env — REDIS_URL (Node.js / Next.js)',
         description:
-          'Password ထဲ special character ပါရင် `REDIS_URL` မှာ **URL-encoded** password သုံးရပါမယ်။ အောက်က ဥပမာမှာ alphanumeric password (`StrongRedis123`) သုံးထားလို့ encode မလိုပါ။',
+          'စာလုံးရှင်းရှင်းဆိုရင် အောက်ကလို တိုက်ရိုက်ရေးလို့ရပါတယ်။ special char ပါရင် encode လုပ်ပါ။',
         code: `# Documentation only — do not commit real secrets to Git
 REDIS_URL=redis://:StrongRedis123@127.0.0.1:6379`,
       },
       {
         title: '6. Password ထဲ special character ပါရင် — ဥပမာ StrongRedis123!@#',
         description:
-          '**redis.conf** ထဲမှာ `#` က line comment အဖြစ် ဖတ်နိုင်လို့ password ကို **double quote** နဲ့ ပတ်ထားပါ။ **Shell** မှာ `redis-cli` သုံးတဲ့အခါ password ကို **single quote** နဲ့ ပတ်ပြီး shell က `!` `@` `#` တွေကို မှားဖတ်မသွားအောင် ကာကွယ်ပါ။ **REDIS_URL** မှာတော့ userinfo ထဲက password ကို **percent-encoding (URL encode)** လုပ်ရပါတယ် — Node.js မှာ `encodeURIComponent("StrongRedis123!@#")` ရလဒ်က `StrongRedis123%21%40%23` ဖြစ်ပါတယ် (`!` → `%21`, `@` → `%40`, `#` → `%23`)။',
+          'conf မှာ `"StrongRedis123!@#"` လို double quote — မဟုတ်ရင် `#` နောက်ပိုင်း ပျောက်သွားနိုင်ပါတယ်။ terminal မှာ `redis-cli -a \'...\'` — single quote။ `.env` မှာတော့ `encodeURIComponent` နဲ့ `StrongRedis123%21%40%23` အထိ လုပ်ထားမှ လင့်ခ်မှာ အလုပ်လုပ်ပါတယ်။',
         code: `# --- redis.conf (example) ---
 requirepass "StrongRedis123!@#"
 # restart: sudo systemctl restart redis-server
@@ -271,10 +267,10 @@ REDIS_URL=redis://:StrongRedis123%21%40%23@127.0.0.1:6379`,
       },
     ],
     notes: [
-      'Production မှာ `bind 127.0.0.1` ထားပြီး public internet ကို Redis port မဖွင့်ပါနဲ့ — remote လိုချင်ရင် VPN / SSH tunnel / private network စဉ်းစားပါ။',
-      'Password ကို `.env` သို့ secret manager မှာသိမ်းပြီး Git မှာ commit မလုပ်ပါနဲ့။',
-      'URL encode လုပ်ဖို့ browser devtools သို့ `encodeURIComponent()` သုံးလို့ရပါတယ်။',
-      'Special character ပါသော password အတွက် လမ်းညွှန်တစ်ခုလုံး (conf / cli / `REDIS_URL` ဥပမာ `StrongRedis123!@#`) ကို **Step 6** မှာ ဖတ်ပါ။',
+      'အင်တာနက်ထဲကို 6379 ဖွင့်မထားပါနဲ့။ လိုရင် SSH tunnel လို့ ချိတ်ပါ။',
+      '`.env` ကို repo ထဲ မထည့်ပါနဲ့။',
+      'encode လုပ်ဖို့ browser console မှာ `encodeURIComponent("...")` ခေါ်ကြည့်လို့ရပါတယ်။',
+      'အသေးစိတ် `StrongRedis123!@#` ဥပမာ — Step 6။',
     ],
   },
   nginxInstallationPost,
@@ -285,27 +281,26 @@ REDIS_URL=redis://:StrongRedis123%21%40%23@127.0.0.1:6379`,
     category: 'Database',
     image: '/blog-covers/postgresql.jpg',
     excerpt:
-      'PGDG repo နဲ့ PostgreSQL 17 install လုပ်ခြင်း၊ database/user ဖန်တီးခြင်း၊ remote TCP ချိတ်ဆက်ခြင်း၊ firewall နဲ့ schema permission ထိအောင် လမ်းညွှန်ပါမယ်။',
+      'PGDG ထဲကနေ 17 ထည့်ပြီး user/db လုပ်ပါ။ အပြင်က app က ချိတ်ချင်ရင် listen + pg_hba + firewall သုံးခုလုံး လိုပါတယ်။',
     readTime: '12 min read',
     author: 'Phyo Maung Maung',
     detailIntro:
-      'Ubuntu server ပေါ်မှာ PostgreSQL official (PGDG) repository သုံးပြီး version 17 ကို install လုပ်ပြီး `testdb` database နဲ့ `nodeuser` application user ကို ဖန်တီးပါမယ်။ Remote application server (Node.js စသည်) ကနေ ချိတ်လို့ရအောင် `listen_addresses`၊`pg_hba.conf`၊ firewall ကိုပါ ထိန်းချုပ်ပါမယ်။',
+      'ဒီမှာ PGDG repo ထည့်ပြီး 17 install လုပ်မယ်။ ဥပမ်အနေနဲ့ `testdb` နဲ့ `nodeuser` လုပ်ပြထားပါတယ်။ app server က အခြား machine မှာ ဆိုရင် `postgresql.conf` မှာ listen၊ `pg_hba.conf` မှာ client ခွင့်ပြု၊ လိုရင် UFW မှာ 5432 — သုံးခုစလုံး ကိုက်မှ ချိတ်ရပါတယ်။',
     detailSummary: [
-      'PGDG apt repository + GPG key နဲ့ major version ကိုတိုက်ရိုက်ရယူနိုင်ပါတယ်။',
-      '`postgres` superuser password၊ dedicated DB user၊ database grant နဲ့ `public` schema owner ကို application user ဆီလွှဲပေးပါမယ်။',
-      'Remote connect အတွက် TCP listen + `pg_hba.md5` + (လိုအပ်ရင်) UFW port 5432 ကိုဖွင့်ပါမယ်။',
+      'Ubuntu repo ထက် PGDG က major version အသစ်တွေကို တိုက်ရိုက်ပေးပါတယ်။',
+      'superuser password၊ app user၊ grant၊ `public` owner လုပ်ပြီး table ဖန်တီးခွင့် ရအောင် လုပ်ပါ။',
+      'အပြင်ကနေ ချိတ်မယ်ဆို md5/scram + firewall ကို စိတ်ရှည်ရှည်ထားပါ။',
     ],
     steps: [
       {
         title: '1. PostgreSQL (PGDG) repository ထည့်ခြင်း',
-        description:
-          'Official PostgreSQL APT repository ကို ထည့်ပါ။ `lsb_release -cs` က Ubuntu codename (ဥပမာ noble) ပြန်ပေးပါမယ်။',
+        description: '`lsb_release -cs` က noble စတဲ့ codename ကို အလိုအလျောက် ထည့်ပေးပါတယ်။',
         code: `sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'`,
       },
       {
         title: '2. Repository GPG key import',
         description:
-          '`apt-key` ဟောင်း syntax သုံးထားနိုင်ပြီး၊ နောက်ပိုင်း Ubuntu တွေမှာ `signed-by` နည်းလမ်းကို PGDG doc ကနေကြည့်နိုင်ပါတယ်။ အောက်က command က အလုပ်လုပ်ပါတယ်။',
+          '`apt-key` က ခေတ်ဟောင်း။ အလုပ်မလုပ်ရင် PGDG doc ထဲက signed-by နည်းလမ်းကို ကြည့်ပါ။ ဒီတစ်ကြောင်းက အများအားဖြင့် အဆင်ပြေပါတယ်။',
         code: `wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -`,
       },
       {
@@ -321,7 +316,7 @@ sudo systemctl enable postgresql`,
       {
         title: '5. psql ဝင်ပြီး superuser password၊ database၊ application user',
         description:
-          '`postgres` OS user အနေနဲ့ `psql` ဝင်ပါ။ အောက်က SQL မှာ `your_password` တွေကို မိမိသတ်မှတ်မယ့် strong password တွေနဲ့ အစားထိုးပါ။',
+          '`sudo -u postgres` နဲ့ ဝင်ပါ။ `your_password` ကို မှတ်မထားတဲ့ စာသားတွေနဲ့ လဲပါ။',
         code: `sudo -i -u postgres
 psql
 
@@ -342,18 +337,18 @@ exit`,
       },
       {
         title: '6. public schema owner ကို nodeuser သို့ (table create လုပ်နိုင်အောင်)',
-        description: '`testdb` ထဲမှာ connect လုပ်ပြီး schema owner ပေးပါ။',
+        description: 'မပေးရင် app user က table မဖန်တီးနိုင်တာမျိုး ဖြစ်တတ်ပါတယ်။',
         code: `sudo -i -u postgres psql -d testdb -c 'ALTER SCHEMA public OWNER TO nodeuser;'`,
       },
       {
         title: '7. Service run ဖြစ်မဖြစ် စစ်ခြင်း',
-        description: '`active (running)` ဖြစ်မှ remote connection စမ်းလို့ကောင်းပါတယ်။',
+        description: 'မတက်ရင် `journalctl -u postgresql` နဲ့ လိုက်ကြည့်ပါ။',
         code: `sudo systemctl status postgresql`,
       },
       {
         title: '8. TCP listening — postgresql.conf',
         description:
-          'Default `localhost` ပဲ listen လုပ်နေရင် အပြင်က IP ကနေ ချိတ်မရပါ။ remote လိုချင်ရင် `listen_addresses` ကို ပြင်ပါ။',
+          '`*` ကို မရွေးချင်ရင် LAN IP တစ်ခုထဲ လိုက်ရေးလို့ရပါတယ်။ remote မလိုဘဲ local ပဲဆိုရင် ဒီအဆင့်ကို ကျော်ပါ။',
         code: `sudo nano /etc/postgresql/17/main/postgresql.conf
 
 # Find and set:
@@ -364,7 +359,7 @@ sudo systemctl restart postgresql`,
       {
         title: '9. Client authentication — pg_hba.conf',
         description:
-          'IPv4 client တွေကို MD5 နဲ့ ခွင့်ပြုချင်ရင် အောက်ပါလိုမျိုး ထည့်ပါ။ Production မှာ `0.0.0.0/0` အစား application server IP တစ်ခုတည်းကို whitelist လုပ်တာက ပိုလုံခြုံပါတယ်။',
+          '`0.0.0.0/0` က လွယ်ပေမယ့် လူတိုင်းဝင်နိုင်အောင် ဖွင့်တာပါ။ တကယ်သုံးမယ်ဆို app server IP တစ်ခုထဲကို ထိန်းပါ။',
         code: `sudo nano /etc/postgresql/17/main/pg_hba.conf
 
 # Example (end of file):
@@ -374,20 +369,20 @@ sudo systemctl restart postgresql`,
       },
       {
         title: '10. Firewall (UFW) — port 5432',
-        description: 'UFW အသုံးပြုထားရင် 5432 ကို allow လုပ်ပါ။',
+        description: 'UFW မဖွင့်ထားရင် ဒီအဆင့်ကို မလိုပါဘူး။',
         code: `sudo ufw status
 sudo ufw allow 5432/tcp
 sudo ufw reload`,
       },
       {
         title: '11. Local connection စမ်းခြင်း',
-        description: 'Server အတွင်းကနေ `nodeuser` နဲ့ `testdb` ကို စမ်းပါ။',
+        description: 'ပထမ localhost ကနေ စမ်းပါ။ ဒီမှာ ပဲ အလုပ်မလုပ်ရင် remote မှာ မအောင်မြင်ပါဘူး။',
         code: `psql -h 127.0.0.1 -U nodeuser -d testdb`,
       },
       {
         title: '12. Remote စမ်းခြင်း',
         description:
-          'အခြား machine (Windows / app server) ကနေ network route နဲ့ PostgreSQL host IP:5432 ကို စမ်းပါ။ ping မရရင် routing/firewall စစ်ပါ။',
+          'client ကနေ `psql` သို့မဟုတ် connection string နဲ့ စမ်းပါ။ ping မရရင် လမ်းမရှိတာပါ — postgres ချိတ်မချိတ် နဲ့ မတူပါဘူး။',
         code: `ping <postgresql-server-ip>
 # Then from client with psql or app connection string:
 # postgresql://nodeuser:your_password@<host>:5432/testdb`,
@@ -400,10 +395,10 @@ sudo ufw reload`,
       { command: 'psql -h 127.0.0.1 -U nodeuser -d testdb', description: 'Local test as app user' },
     ],
     notes: [
-      '`apt-key add` ဟောင်း workflow ကို နောက်ပိုင်းမှာ `dearmor` + `/etc/apt/trusted.gpg.d/` နည်းလမ်းနဲ့ အစားထိုးကြပါတယ် — install မရရင် PGDG official doc ကို ကြည့်ပါ။',
-      '`0.0.0.0/0` က internet-wide open ဖြစ်နိုင်လို့ production မှာ source IP ကန့်သတ်ပါ။',
-      '`ALTER USER postgres` နဲ့ `CREATE USER nodeuser` မှာ password တွေကို environment variable သို့မဟုတ် secret manager နဲ့ သိမ်းပါ၊ repo/screen မှာ plain text မထားပါနဲ့။',
-      'SSL (`hostssl`) နဲ့ certificate ကို public network ပေါ်မှာ ထပ်စဉ်းစားပါ။',
+      'apt key error ရရင် PGDG site မှာ GPG နည်းလမ်း အသစ်ကို ကြည့်ပါ။',
+      'pg_hba မှာ ကမ္ဘာ့လုံးခွင့်ပြုထားရင် အမှန်တကယ် လိုအပ်သလား ပြန်စစ်ပါ။',
+      'password တွေကို screen မှာ မထားပါနဲ့။',
+      'အင်တာနက်ပေါ်ကနေ တိုက်ရိုက်ချိတ်မယ်ဆို SSL + hostssl ကို စဉ်းစားပါ။',
     ],
   },
   zabbixInstallationPost,

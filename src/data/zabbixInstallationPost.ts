@@ -5,17 +5,17 @@ export const zabbixInstallationPost: BlogPost = {
   title: 'Zabbix 7.0 LTS — Installation on Ubuntu 24.04 LTS',
   date: 'Published · 7 Apr 2026',
   category: 'Monitoring',
-  image: '/blog-covers/zabbix.jpg',
+  image: '/blog-covers/zabbix.png',
   excerpt:
-    'Ubuntu 24.04 LTS ပေါ်မှာ MySQL、`zabbix-release` repo၊ Zabbix server/frontend/agent၊ DB schema import、`zabbix_server.conf` ချိန်ပြီး Apache မှ `http://host/zabbix` UI setup (wizard + default Admin login) အထိ လမ်းညွှန်ပါမယ်။',
+    '24.04 မှာ MySQL ထည့်ပြီး zabbix repo ကနေ server/frontend/agent ဆွဲပြီး schema ထည့်ကာ web wizard အထိ။ အောက်က `Letmein+123` တွေက ဥပမာသာ — အမှန်တကယ် သုံးမယ်ဆို လဲပါ။',
   readTime: '20 min read',
   author: 'Phyo Maung Maung',
   detailIntro:
-    'ဒီလမ်းညွှန်က Zabbix 7.0 LTS ကို Ubuntu 24.04 (Noble) ပေါ်မှာ official repository နဲ့ တပ်ဆင်ပြီး MySQL backend နဲ့ ချိတ်ပြီး web UI အထိ စမ်းနိုင်အောင် ရေးထားပါတယ်။ လမ်းညွှန်ထဲက database password ဥပမာများ (`Letmein+123`) ကို training/demo အတွက်သာ သုံးပါ — production မှာ မိမိသတ်မှတ် strong credential တွေနဲ့ အစားထိုးပါ။',
+    'Zabbix 7.0 ကို Noble ပေါ်မှာ တရားဝင် repo နဲ့ ထည့်ပြီး MySQL နဲ့ ချိတ်တဲ့ လမ်းကြောင်းပါ။ စာသားထဲက စကားဝှက်တွေက လေ့ကျင့်ခန်းအတွက် ပဲ — live မှာ မသုံးပါနဲ့။',
   detailSummary: [
-    'Zabbix official `7.0` + `ubuntu24.04` release package နဲ့ apt dependency တွေကို တရားဝင်လမ်းကြောင်းအတိုင်း ရယူနိုင်ပါတယ်။',
-    'MySQL မှာ `zabbix` database / user ဖန်တီးပြီး `server.sql.gz` import လုပ်ပြီးမှ `zabbix_server.conf` မှာ `DBPassword` ကိုက်ညီအောင် ထားရပါမယ်။',
-    'Web installer ပြီးရင် default login မှာ username `Admin` (case-sensitive)၊ password `zabbix` ဖြစ်ပါတယ် — ပထမဝင်ချိန်မှာ ပြောင်းသင့်ပါတယ်။',
+    '`.deb` release ကို ထည့်ပြီး `apt install` နဲ့ ဆွဲလို့ရပါတယ်။',
+    'DB နဲ့ user လုပ်ပြီး schema import မလုပ်ရင် server မတက်ပါဘူး။ `DBPassword` ကို MySQL နဲ့ တူအောင် ထားပါ။',
+    'ပထမဝင်တဲ့အခါ Admin / zabbix ကို ချက်ချင်း ပြောင်းပါ — မပြောင်းရင် လွယ်လွယ်ကူကူ ဝင်လို့ရနေပါလိမ့်မယ်။',
   ],
   steps: [
     {
@@ -26,7 +26,7 @@ sudo apt upgrade -y`,
     {
       title: '2. MySQL Server installation',
       description:
-        '`mysql-server` ထည့်ပြီး root အတွက် `mysql_native_password` နဲ့ password သတ်မှတ်ပါ။ အောက်က ဥပမာမှာ password ကို `Letmein+123` လို့ ထားထားပါတယ်။ ပြီးရင် `mysql_secure_installation` ကို interactive အဖြေတွေနဲ့ လုပ်ပါ။',
+        'MySQL 8 ဆိုရင် root auth က မတူတတ်လို့ အောက်က ALTER ကို ကြည့်ပါ။ `Letmein+123` က ဥပမာ။ `mysql_secure_installation` မှာ မေးတာတွေကို လက်တွေ့မှာ ကိုယ့်အသင့်ပြုပါ။',
       code: `sudo apt install -y mysql-server
 sudo mysql
 
@@ -50,8 +50,7 @@ sudo mysql -u root -p
     },
     {
       title: '3. Zabbix installation — repository & packages',
-      description:
-        'Root shell (`sudo -s`) သုံးလို့ရပါတယ်။ အောက်က command တွေကို `sudo` နဲ့ လုပ်ပါ။',
+      description: 'wget နဲ့ `.deb` ဆွဲပြီး dpkg → apt update → install။ တစ်ကြောင်းချင်းစီ လိုက်ပါ။',
       code: `sudo wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+ubuntu24.04_all.deb
 
 sudo dpkg -i zabbix-release_latest_7.0+ubuntu24.04_all.deb
@@ -62,7 +61,7 @@ sudo apt install -y zabbix-server-mysql zabbix-frontend-php zabbix-apache-conf z
     {
       title: '4. Create initial database',
       description:
-        'Database host ပေါ်မှာ MySQL ဝင်ပြီး `zabbix` database နဲ့ user ကို ဖန်တီးပါ။ Password ဥပမာ ကို လမ်းညွှန်တစ်လျှောက်တည်း `Letmein+123` နဲ့ ထားထားပါတယ်။',
+        '`log_bin_trust_function_creators = 1` က import အတွက် လိုပါတယ်။ import ပြီးမှ ပြန်ပိတ်ပါ။',
       code: `sudo mysql -u root -p
 # Password: Letmein+123
 
@@ -75,7 +74,7 @@ QUIT;`,
     {
       title: '5. Import initial schema and data',
       description:
-        'Zabbix server host ပေါ်မှာ schema import လုပ်ပါ။ Password မေးရင် `zabbix` user password (`Letmein+123`) ထည့်ပါ။ Import ကြာချိန် အနည်းငယ် ကြာနိုင်ပါတယ်။',
+        'ကြာတတ်ပါတယ်။ မှားရင် နောက်တစ်ခါ server မတက်ပါဘူး — log ကို ကြည့်ပါ။',
       code: `zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -uzabbix -p zabbix
 # Enter password for zabbix user: Letmein+123`,
     },
@@ -89,8 +88,7 @@ QUIT;`,
     },
     {
       title: '7. Configure Zabbix server — DBPassword',
-      description:
-        '`/etc/zabbix/zabbix_server.conf` ထဲမှာ `DBPassword` ကို `zabbix` MySQL user password နဲ့ ကိုက်အောင် ထားပါ။',
+      description: 'MySQL မှာ ထားတဲ့ စကားဝှက်နဲ့ တစ်လုံးချင်းတူရပါမယ်။',
       code: `sudo nano /etc/zabbix/zabbix_server.conf
 
 # Set (example — match your zabbix DB user password):
@@ -98,7 +96,7 @@ QUIT;`,
     },
     {
       title: '8. Start Zabbix server, agent, and Apache',
-      description: 'Boot အတွင်း auto-start ဖြစ်အောင် enable လုပ်ပါ။',
+      description: 'enable ထားမှ ပြန်စတင်တဲ့အခါ တက်ပါတယ်။',
       code: `sudo systemctl restart zabbix-server zabbix-agent apache2
 sudo systemctl enable zabbix-server zabbix-agent apache2
 sudo systemctl status zabbix-server zabbix-agent apache2`,
@@ -106,7 +104,7 @@ sudo systemctl status zabbix-server zabbix-agent apache2`,
     {
       title: '9. Open Zabbix UI',
       description:
-        'Apache နဲ့ ထည့်ထားတဲ့ default URL က `http://<host>/zabbix` ဖြစ်ပါတယ်။ Local မှာ `http://localhost/zabbix` သို့မဟုတ် server IP နဲ့ ဝင်ပါ။',
+        'များသောအားဖြင့် `/zabbix` path ပေါ့။ မတက်ရင် Apache error log ကို ဦးစားပေးကြည့်ပါ။',
       code: `# Browser:
 # http://<your-server-ip>/zabbix
 # or
@@ -115,7 +113,7 @@ sudo systemctl status zabbix-server zabbix-agent apache2`,
     {
       title: '10. Initial setup wizard (web UI)',
       description:
-        'Wizard မှာ Next နှိပ်ပြီး database connection ကို အောက်ပါအတိုင်း ဖြည့်ပါ။ (လမ်းညွှန်ဥပမာ password နဲ့ ကိုက်အောင်)',
+        'DB အချက်အလက်တွေကို မှားမထည့်ပါနဲ့။ ပြီးမှ web login ကို ပြောင်းပါ။',
       code: `# Wizard fields:
 # Database host : localhost
 # Database port : 3306
@@ -135,7 +133,7 @@ sudo systemctl status zabbix-server zabbix-agent apache2`,
     { command: 'mysql -u zabbix -p zabbix', description: 'Test DB user connection (optional)' },
   ],
   notes: [
-    'Training လမ်းညွှန်ထဲက `Letmein+123` နှင့် default UI password `zabbix` တွေကို production မှာ မသုံးပါနဲ့ — အစားထိုးပြီး firewall (ဥပမာ UFW port 80/443) နဲ့ access ကန့်သတ်ပါ။',
-    '`mysql_native_password` နဲ့ root setup က MySQL version / default auth plugin ပေါ်မူတည်ပြီး ပြောင်းလဲနိုင်ပါတယ် — error ရရင် MySQL 8 doc ကို ကြည့်ပါ။',
+    '`Letmein+123` နဲ့ default `zabbix` စကားဝှက်တွေကို အင်တာနက်ပေါ်မှာ မထားပါနဲ့။',
+    'MySQL auth error ရရင် စာမျက်နှာပေါ်က error စာသားကို ကော်ပီပြီး doc မှာ ရှာပါ။',
   ],
 }
