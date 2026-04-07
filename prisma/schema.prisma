@@ -1,9 +1,0 @@
-// Optional: Prisma schema mirrors MongoDB usage; the app uses the native driver in lib/mongodb.ts.
-datasource db {
-  provider = "mongodb"
-  url      = env("MONGODB_URI")
-}
-
-generator client {
-  provider = "prisma-client-js"
-}

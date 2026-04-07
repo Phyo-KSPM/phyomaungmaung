@@ -1,8 +1,6 @@
-import { type FormEvent, useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Navigate, Outlet, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, NavLink, Outlet, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { blogPosts, postHasFullContent } from './data/blogPosts'
-import { apiFetch } from './lib/api'
-import { isBlogUnlockedForToday, setBlogUnlockedForToday } from './lib/blogAccess'
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -174,235 +172,10 @@ function CopyableCodeBlock({ code }: { code: string }) {
   )
 }
 
-function LoginPage() {
-  const navigate = useNavigate()
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [pending, setPending] = useState(false)
-
-  useEffect(() => {
-    if (localStorage.getItem('admin_token')) {
-      navigate('/admin/access-codes', { replace: true })
-    }
-  }, [navigate])
-
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    setPending(true)
-    setError('')
-    try {
-      const data = await apiFetch<{ token: string }>('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ username, password }),
-      })
-      localStorage.setItem('admin_token', data.token)
-      navigate('/admin/access-codes', { replace: true })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
-    } finally {
-      setPending(false)
-    }
-  }
-
-  return (
-    <section className="page-content mx-auto max-w-md px-2 py-4">
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="reveal-on-scroll reveal-delay-1 inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
-      >
-        <span aria-hidden>←</span>
-        Back
-      </button>
-
-      <div className="reveal-on-scroll reveal-delay-2 mt-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm shadow-slate-100/80">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Admin</p>
-        <h1 className="mt-3 text-center text-2xl font-semibold tracking-tight text-slate-900">Sign in</h1>
-        <p className="mt-2 text-center text-sm text-slate-600">
-          After login you will see the access code list for blog posts.
-        </p>
-
-        <form className="mt-8 space-y-4" onSubmit={onSubmit}>
-          <div>
-            <label htmlFor="admin-username" className="block text-sm font-medium text-slate-700">
-              Username
-            </label>
-            <input
-              id="admin-username"
-              name="username"
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none ring-slate-300 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="admin-password" className="block text-sm font-medium text-slate-700">
-              Password
-            </label>
-            <input
-              id="admin-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none ring-slate-300 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2"
-            />
-          </div>
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <button
-            type="submit"
-            disabled={pending}
-            className="smooth-cta w-full rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60"
-          >
-            {pending ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-      </div>
-    </section>
-  )
-}
-
-type AdminRow = {
-  no: number
-  title: string
-  accessCode: string
-  publishedDate: string
-  author: string
-}
-
-function AdminAccessCodesPage() {
-  const navigate = useNavigate()
-  const [rows, setRows] = useState<AdminRow[]>([])
-  const [day, setDay] = useState('')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const token = localStorage.getItem('admin_token')
-    if (!token) {
-      navigate('/login', { replace: true })
-      return
-    }
-    let cancelled = false
-    void (async () => {
-      try {
-        const data = await apiFetch<{ generatedForUtcDay: string; rows: AdminRow[] }>('/api/admin/access-codes', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (cancelled) return
-        setDay(data.generatedForUtcDay)
-        setRows(data.rows)
-      } catch {
-        localStorage.removeItem('admin_token')
-        navigate('/login', { replace: true })
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [navigate])
-
-  function logout() {
-    localStorage.removeItem('admin_token')
-    navigate('/login')
-  }
-
-  return (
-    <section className="page-content mx-auto max-w-6xl px-2 py-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Access codes</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Codes rotate daily (UTC). Today: <span className="font-mono font-medium">{day || '—'}</span>
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={logout}
-          className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-300 hover:text-slate-900"
-        >
-          Log out
-        </button>
-      </div>
-
-      {loading ? (
-        <p className="mt-8 text-sm text-slate-600">Loading…</p>
-      ) : (
-        <div className="reveal-on-scroll reveal-delay-1 mt-8 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">No</th>
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Access Code</th>
-                <th className="px-4 py-3">Published Date</th>
-                <th className="px-4 py-3">Author</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((row) => (
-                <tr key={row.no} className="text-slate-700">
-                  <td className="px-4 py-3 font-mono text-xs text-slate-500">{row.no}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900">{row.title}</td>
-                  <td className="px-4 py-3 font-mono text-sm tracking-wide">{row.accessCode}</td>
-                  <td className="px-4 py-3">{row.publishedDate}</td>
-                  <td className="px-4 py-3">{row.author}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  )
-}
-
 function BlogDetailPage() {
   const navigate = useNavigate()
   const { slug } = useParams()
   const post = blogPosts.find((item) => item.slug === slug)
-
-  const [codeInput, setCodeInput] = useState('')
-  const [verifyError, setVerifyError] = useState('')
-  const [verifyPending, setVerifyPending] = useState(false)
-  const [unlocked, setUnlocked] = useState(false)
-
-  useEffect(() => {
-    if (!post?.slug) return
-    setUnlocked(isBlogUnlockedForToday(post.slug))
-  }, [post?.slug])
-
-  useEffect(() => {
-    setCodeInput('')
-    setVerifyError('')
-    setVerifyPending(false)
-  }, [post?.slug])
-
-  async function onVerifyAccess(e: FormEvent) {
-    e.preventDefault()
-    if (!post) return
-    setVerifyPending(true)
-    setVerifyError('')
-    try {
-      const data = await apiFetch<{ ok: boolean; day: string }>('/api/blog/verify', {
-        method: 'POST',
-        body: JSON.stringify({ slug: post.slug, code: codeInput }),
-      })
-      if (data.ok) {
-        setBlogUnlockedForToday(post.slug, data.day)
-        setUnlocked(true)
-      }
-    } catch (err) {
-      setVerifyError(err instanceof Error ? err.message : 'Invalid access code')
-    } finally {
-      setVerifyPending(false)
-    }
-  }
 
   if (!post) {
     return (
@@ -425,10 +198,7 @@ function BlogDetailPage() {
 
   const hasFull = postHasFullContent(post)
   const authorLine = post.author ?? 'Phyo Maung Maung'
-  const needsCodeWall = hasFull && !unlocked
-
-  const introParagraph =
-    needsCodeWall || !hasFull ? post.excerpt : (post.detailIntro ?? post.excerpt)
+  const introParagraph = hasFull ? (post.detailIntro ?? post.excerpt) : post.excerpt
 
   return (
     <section className="page-content mx-auto max-w-4xl">
@@ -461,44 +231,6 @@ function BlogDetailPage() {
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
               Step-by-step commands and extended notes for this topic are not published yet.
             </p>
-          </section>
-        ) : needsCodeWall ? (
-          <section className="reveal-on-scroll reveal-delay-3 mt-8 overflow-hidden rounded-3xl border border-sky-200/80 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-8 shadow-sm">
-            <div className="flex flex-col sm:items-stretch">
-              <span className="inline-flex w-fit items-center rounded-full border border-sky-300/80 bg-sky-100/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-900">
-                Access code required
-              </span>
-              <h2 className="mt-4 text-xl font-semibold text-slate-900">Enter today&apos;s access code</h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
-                Full article content is available after you enter the correct code for this post. Codes refresh once per
-                day (UTC).
-              </p>
-              <form className="mt-6 flex max-w-md flex-col gap-3 sm:flex-row sm:items-end" onSubmit={onVerifyAccess}>
-                <div className="min-w-0 flex-1">
-                  <label htmlFor="blog-access-code" className="block text-sm font-medium text-slate-700">
-                    Access code
-                  </label>
-                  <input
-                    id="blog-access-code"
-                    name="code"
-                    type="text"
-                    autoComplete="off"
-                    value={codeInput}
-                    onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-sm tracking-wider text-slate-900 outline-none ring-slate-300 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2"
-                    placeholder="e.g. A1B2C3D4"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={verifyPending}
-                  className="smooth-cta rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60 sm:shrink-0"
-                >
-                  {verifyPending ? 'Checking…' : 'Unlock'}
-                </button>
-              </form>
-              {verifyError ? <p className="mt-3 text-sm text-red-600">{verifyError}</p> : null}
-            </div>
           </section>
         ) : (
           <>
@@ -567,14 +299,10 @@ function BlogDetailPage() {
 
 function Layout() {
   const location = useLocation()
-  const blogNavIndex = navItems.findIndex((item) => item.to === '/blog')
   const matchedNavIndex = navItems.findIndex((item) =>
     item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to),
   )
-  const activeNavIndex =
-    (location.pathname.startsWith('/login') || location.pathname.startsWith('/admin')) && blogNavIndex >= 0
-      ? blogNavIndex
-      : Math.max(matchedNavIndex, 0)
+  const activeNavIndex = Math.max(matchedNavIndex, 0)
   const previousNavIndex = useRef(activeNavIndex)
   const [transitionClass, setTransitionClass] = useState('page-transition-right')
 
@@ -684,11 +412,7 @@ function Layout() {
                   key={item.label}
                   to={item.to}
                   className={({ isActive }) => {
-                    const blogActive =
-                      item.to === '/blog' &&
-                      (location.pathname.startsWith('/blog') ||
-                        location.pathname.startsWith('/login') ||
-                        location.pathname.startsWith('/admin'))
+                    const blogActive = item.to === '/blog' && location.pathname.startsWith('/blog')
                     const active =
                       item.to === '/' ? location.pathname === '/' : item.to === '/blog' ? blogActive : isActive
                     return `relative z-10 flex items-center justify-center rounded-full px-6 py-2.5 text-center text-base font-semibold leading-none transition ${
@@ -1001,11 +725,6 @@ function BlogPage() {
                 alt={post.title}
                 className="h-40 w-full rounded-xl object-cover ring-1 ring-slate-200/70 sm:h-48"
               />
-              {postHasFullContent(post) && (
-                <span className="absolute right-3 top-3 rounded-full border border-sky-300/90 bg-sky-100/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-sky-900 shadow-sm">
-                  Access code
-                </span>
-              )}
             </div>
             <p className="text-xs font-medium text-slate-500">
               {post.date} · by {post.author ?? 'Phyo Maung Maung'} · {post.category} · {post.readTime}
@@ -1028,9 +747,6 @@ function App() {
         <Route path="projects" element={<ProjectsPage />} />
         <Route path="blog" element={<BlogPage />} />
         <Route path="blog/:slug" element={<BlogDetailPage />} />
-        <Route path="login" element={<LoginPage />} />
-        <Route path="admin/access-codes" element={<AdminAccessCodesPage />} />
-        <Route path="premium/login" element={<Navigate to="/login" replace />} />
       </Route>
     </Routes>
   )
